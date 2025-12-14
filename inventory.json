@@ -1,0 +1,9 @@
+{
+  "1": {
+    "nombre": "Cable USB",
+    "cantidad": 2,
+    "tipo": "Unidades",
+    "imagen": "default.png",
+    "stock_min": 3
+  }
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Stock</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+/* contenedor bottom-center para toasts */
+.toast-container-bottom {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  pointer-events: none; /* clicks pasan a los toasts individuales */
+}
+
+/* TOASTS: más grandes y visibles */
+.toast {
+  pointer-events: auto;
+  min-width: 360px;    /* más ancho */
+  max-width: 560px;    /* más ancho */
+  border-radius: 0.6rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+
+/* cuerpo del toast con mayor padding y tamaño de fuente */
+.toast .toast-body {
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+/* variantes visuales más claras para contrastar */
+.toast .bg-warning { color: #2d2d2d !important; }
+</style>
+</head>
+<body class="bg-light">
+<div class="container py-4">
+  <h2 class="mb-4">📦 Stock visual</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="mb-3">
+        {% for cat,msg in messages %}
+          <div class="alert alert-{{cat}} alert-dismissible fade show" role="alert">
+            {{ msg }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="row">
+    {% for id,p in inventario.items() %}
+      <div class="col-md-3 mb-4">
+        <div class="card shadow-sm">
+          <img src="{{ url_for('static', filename='productos/' + p['imagen']) }}"
+               onerror="this.onerror=null;this.src='https://via.placeholder.com/400x300?text=Sin+imagen';"
+               class="card-img-top" style="height:180px;object-fit:cover;">
+          <div class="card-body text-center">
+            <h6 class="d-flex justify-content-between align-items-center">
+              <span>{{ p['nombre'] }}</span>
+              {% if p['cantidad'] == 0 %}
+                <span class="badge bg-danger">AGOTADO</span>
+              {% elif p['cantidad'] <= p.get('stock_min',0) %}
+                <span class="badge bg-warning text-dark">BAJO</span>
+              {% else %}
+                <span class="badge bg-success">OK</span>
+              {% endif %}
+            </h6>
+
+            <p><strong class="{% if p['cantidad']==0 %}text-danger{% elif p['cantidad']<=p.get('stock_min',0) %}text-warning{% else %}text-success{% endif %}">{{ p['cantidad'] }}</strong></p>
+
+            <div class="d-flex justify-content-center gap-2">
+              <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalEntrada" onclick="setProducto({{ id }},'add')">➕</button>
+              <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#modalSalida" onclick="setProducto({{ id }},'remove')">➖</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <a href="{{ url_for('logout') }}" class="btn btn-secondary mt-3">Cerrar sesión</a>
+</div>
+
+<!-- modals (unchanged) -->
+<div class="modal fade" id="modalEntrada" tabindex="-1"><div class="modal-dialog">
+<form method="POST" action="{{ url_for('add_stock') }}" class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">➕ Agregar stock</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" name="id" id="entrada_id"><label>Cantidad</label><input type="number" name="cantidad" class="form-control" min="1" required></div>
+  <div class="modal-footer"><button class="btn btn-success">Confirmar</button></div>
+</form></div></div>
+
+<div class="modal fade" id="modalSalida" tabindex="-1"><div class="modal-dialog">
+<form method="POST" action="{{ url_for('remove_stock') }}" class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">➖ Retirar stock</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" name="id" id="salida_id"><label>Cantidad</label><input type="number" name="cantidad" class="form-control" min="1" required></div>
+  <div class="modal-footer"><button class="btn btn-danger">Confirmar</button></div>
+</form></div></div>
+
+<!-- contenedor de toasts bottom-center -->
+<div id="toastContainer" class="toast-container-bottom" aria-live="polite" aria-atomic="true">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      {# mapear warning a clase texto oscuro, el resto usar text-white para contraste #}
+      {% if cat == 'warning' %}
+        {% set body_classes = 'bg-warning text-dark p-2 rounded' %}
+      {% elif cat == 'info' %}
+        {% set body_classes = 'bg-info text-white p-2 rounded' %}
+      {% else %}
+        {% set body_classes = 'bg-' + cat + ' text-white p-2 rounded' %}
+      {% endif %}
+      <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+        <div class="toast-body {{ body_classes }}">
+          {{ msg }}
+        </div>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function setProducto(id,tipo){ if(tipo==='add') document.getElementById('entrada_id').value=id; else document.getElementById('salida_id').value=id; }
+
+document.addEventListener('DOMContentLoaded', function(){
+  const toastContainer = document.getElementById('toastContainer');
+  if (!toastContainer) return;
+  // inicializa y muestra todos los toasts presentes
+  const toastEls = toastContainer.querySelectorAll('.toast');
+  toastEls.forEach(function(el){
+    const t = new bootstrap.Toast(el);
+    t.show();
+  });
+});
+</script>
+</body>
+</html>
