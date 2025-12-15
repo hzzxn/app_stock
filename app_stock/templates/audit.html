@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Auditoría - Stock</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>📝 Auditoría</h3>
+    <div>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light me-2">Volver</a>
+      <a href="{{ url_for('audit_export', **query) }}" class="btn" style="background:var(--orange);color:#111">Exportar CSV</a>
+    </div>
+  </div>
+
+  <div class="row top-cards mb-3">
+    <div class="col-md-4">
+      <div class="card p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <small class="stat-sub">Total productos</small>
+            <h4 class="stat-value">{{ total_products }}</h4>
+          </div>
+          <div class="text-end">
+            <small class="stat-sub">Ítems</small>
+            <h4 class="stat-value">{{ total_items }}</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3">
+        <small class="stat-sub">Productos con stock bajo</small>
+        <h4 class="stat-value orange">{{ low_stock }}</h4>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3">
+        <small class="stat-sub">Registros</small>
+        <h4 class="stat-value">{{ logs|length }}</h4>
+      </div>
+    </div>
+  </div>
+
+  <form method="get" class="row g-2 filter-row mb-3">
+    <div class="col-md-2">
+      <select name="action" class="form-select">
+        <option value="">Acción (todas)</option>
+        <option value="create_product" {% if query.action=='create_product' %}selected{% endif %}>Crear</option>
+        <option value="edit_product" {% if query.action=='edit_product' %}selected{% endif %}>Editar</option>
+        <option value="delete_product" {% if query.action=='delete_product' %}selected{% endif %}>Eliminar</option>
+        <option value="add_stock" {% if query.action=='add_stock' %}selected{% endif %}>Entrada</option>
+        <option value="remove_stock" {% if query.action=='remove_stock' %}selected{% endif %}>Salida</option>
+        <option value="login" {% if query.action=='login' %}selected{% endif %}>Login</option>
+        <option value="logout" {% if query.action=='logout' %}selected{% endif %}>Logout</option>
+      </select>
+    </div>
+    <div class="col-md-2"><input name="user" value="{{ query.user or '' }}" placeholder="Usuario" class="form-control"></div>
+    <div class="col-md-2"><input name="sku" value="{{ query.sku or '' }}" placeholder="SKU" class="form-control"></div>
+    <div class="col-md-2"><input name="from" value="{{ query.from or '' }}" type="datetime-local" class="form-control"></div>
+    <div class="col-md-2"><input name="to" value="{{ query.to or '' }}" type="datetime-local" class="form-control"></div>
+    <div class="col-md-2 text-end">
+      <button class="btn" style="background:var(--orange);color:#111">Filtrar</button>
+    </div>
+  </form>
+
+  <div class="table-responsive" style="max-height:60vh;overflow:auto;">
+    <table class="table table-dark table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Fecha (UTC)</th>
+          <th>Usuario</th>
+          <th>Acción</th>
+          <th>SKU / PID</th>
+          <th>Detalles</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in logs %}
+        <tr>
+          <td style="white-space:nowrap;color:#fff;font-weight:600">{{ e.ts }}</td>
+          <td style="color:#fff">{{ e.user }}</td>
+          <td><span class="badge badge-sku">{{ e.action }}</span></td>
+          <td style="color:#fff">{{ e.sku or '—' }} {% if e.pid %}/ {{ e.pid }}{% endif %}</td>
+          <td><pre style="white-space:pre-wrap;color:#ddd;font-size:0.9rem">{{ e.details | tojson(indent=2) }}</pre></td>
+        </tr>
+        {% endfor %}
+        {% if logs|length == 0 %}
+        <tr><td colspan="5" class="text-center text-muted">Sin registros</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

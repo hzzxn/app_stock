@@ -1,0 +1,13 @@
+{
+  "2": {
+    "sku": "P0002",
+    "nombre": "Zapatera Pegable",
+    "cantidad": 20,
+    "tipo": "Unidades",
+    "imagen": "default.png",
+    "stock_min": 0,
+    "color": "Blanco",
+    "categoria": "Zapateras",
+    "unidad": "Unidades"
+  }
+}

@@ -1,0 +1,384 @@
+[
+  {
+    "ts": "2025-12-15T01:05:29.053208Z",
+    "user": "china",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T01:04:36.066605Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:58:59.612394Z",
+    "user": "china",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:58:33.407589Z",
+    "user": "china",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:57:55.557044Z",
+    "user": "china",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:56:24.246058Z",
+    "user": "china",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:56:07.451458Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:56:03.968818Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:52:11.290277Z",
+    "user": "china",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:51:58.827170Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:51:56.034925Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:51:52.030456Z",
+    "user": "china",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:51:20.654621Z",
+    "user": "china",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:44:21.839372Z",
+    "user": "admin",
+    "action": "add_stock",
+    "pid": 2,
+    "sku": "P0002",
+    "details": {
+      "before": 0,
+      "after": 20,
+      "delta": 20
+    }
+  },
+  {
+    "ts": "2025-12-15T00:44:18.067236Z",
+    "user": "admin",
+    "action": "remove_stock",
+    "pid": 2,
+    "sku": "P0002",
+    "details": {
+      "before": 21,
+      "after": 0,
+      "delta": -21
+    }
+  },
+  {
+    "ts": "2025-12-15T00:44:00.768577Z",
+    "user": "admin",
+    "action": "delete_product",
+    "pid": 1,
+    "sku": null,
+    "details": {
+      "nombre": "Cable USB",
+      "cantidad": 0,
+      "tipo": "Unidades",
+      "imagen": "default.png",
+      "stock_min": 3
+    }
+  },
+  {
+    "ts": "2025-12-15T00:43:47.753238Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:43:43.347955Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:41:39.312428Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:33:24.431732Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:33:11.135039Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:33:08.103295Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:31:31.060264Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:31:28.583196Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:30:52.417588Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:30:47.841052Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:28:55.237718Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:28:52.026551Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:22:26.454138Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:22:22.287383Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:21:51.792522Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:02:39.644184Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-15T00:00:22.094307Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:59:48.507778Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:59:31.145057Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:58:02.514045Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:57:52.990548Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:54:23.371455Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:54:16.667178Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:51:57.392873Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:51:32.014515Z",
+    "user": "operador",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:51:29.338699Z",
+    "user": "operador",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:50:50.038880Z",
+    "user": "admin",
+    "action": "logout",
+    "pid": null,
+    "sku": null,
+    "details": "Cierre de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:47:27.120405Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:47:24.863112Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  },
+  {
+    "ts": "2025-12-14T23:46:14.099907Z",
+    "user": "admin",
+    "action": "login",
+    "pid": null,
+    "sku": null,
+    "details": "Inicio de sesión"
+  }
+]
