@@ -4,73 +4,58 @@
 <meta charset="utf-8">
 <title>Login</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-.toast-container-bottom { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index:1080; display:flex; flex-direction:column; gap:10px; align-items:center; pointer-events:none; }
-
-/* TOASTS agrandados */
-.toast {
-  pointer-events:auto;
-  min-width:360px;
-  max-width:560px;
-  border-radius:0.6rem;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-}
-.toast .toast-body {
-  padding:1rem 1.25rem;
-  font-size:1rem;
-  line-height:1.2;
-}
-.toast .bg-warning { color: #2d2d2d !important; }
-</style>
+<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 </head>
+<body class="d-flex justify-content-center align-items-center vh-100">
 
-<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+  <form method="POST" class="login-card text-center">
+    <div class="login-logo">ST</div>
+    <h4 class="mb-2">🔐 Iniciar sesión</h4>
+    <p class="form-help mb-3">Ingresa tus credenciales</p>
 
-<form method="POST" class="card p-4 shadow" style="width:320px;">
-<h4 class="text-center mb-3">🔐 Login</h4>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <!-- toasts se renderizan abajo, no duplicar alert arriba -->
+      {% endif %}
+    {% endwith %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div style="display:none;">
-      {% for cat,msg in messages %}
-        {% if cat == 'warning' %}
-          {% set body_classes = 'bg-warning text-dark p-2 rounded' %}
-        {% elif cat == 'info' %}
-          {% set body_classes = 'bg-info text-white p-2 rounded' %}
+    <input class="form-control mb-2" name="user" placeholder="Usuario" required autofocus>
+    <input type="password" class="form-control mb-3" name="password" placeholder="Contraseña" required>
+
+    <button class="btn btn-primary w-100 mb-2">Entrar</button>
+
+    <div class="text-muted" style="font-size:0.85rem">Usuario de prueba: <strong>admin</strong> / 1234</div>
+  </form>
+
+  <!-- contenedor toasts -->
+  <div id="toastContainer" class="toast-container-bottom" aria-live="polite" aria-atomic="true">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        {% if cat == 'success' %}
+          {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' %}
+          {% set title = 'Éxito' %}
+        {% elif cat == 'warning' %}
+          {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a1.99 1.99 0 0 0 1.71 3h16.94a1.99 1.99 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="0" fill="currentColor"/></svg>' %}
+          {% set title = 'Atención' %}
+        {% elif cat == 'danger' %}
+          {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.36 5.64L5.64 18.36M5.64 5.64l12.72 12.72" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' %}
+          {% set title = 'Error' %}
         {% else %}
-          {% set body_classes = 'bg-' + cat + ' text-white p-2 rounded' %}
+          {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/></svg>' %}
+          {% set title = 'Notificación' %}
         {% endif %}
-        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-          <div class="toast-body {{ body_classes }}">{{ msg }}</div>
+
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3500">
+          <div class="toast-header custom" style="color:var(--orange);">
+            <span style="color:var(--orange);display:flex;align-items:center;">{{ svg_path | safe }}</span>
+            <strong class="me-auto toast-title">{{ title }}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+          </div>
+          <div class="toast-body">{{ msg }}</div>
         </div>
       {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}
-
-<input class="form-control mb-2" name="user" placeholder="Usuario" required>
-<input type="password" class="form-control mb-3" name="password" placeholder="Contraseña" required>
-
-<button class="btn btn-primary w-100">Entrar</button>
-</form>
-
-<!-- contenedor toasts (login) -->
-<div id="toastContainer" class="toast-container-bottom" aria-live="polite" aria-atomic="true">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for cat,msg in messages %}
-      {% if cat == 'warning' %}
-        {% set body_classes = 'bg-warning text-dark p-2 rounded' %}
-      {% elif cat == 'info' %}
-        {% set body_classes = 'bg-info text-white p-2 rounded' %}
-      {% else %}
-        {% set body_classes = 'bg-' + cat + ' text-white p-2 rounded' %}
-      {% endif %}
-      <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-        <div class="toast-body {{ body_classes }}">{{ msg }}</div>
-      </div>
-    {% endfor %}
-  {% endwith %}
-</div>
+    {% endwith %}
+  </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -79,6 +64,8 @@ document.addEventListener('DOMContentLoaded', function(){
   if (!toastContainer) return;
   const toastEls = toastContainer.querySelectorAll('.toast');
   toastEls.forEach(function(el){
+    const svg = el.querySelector('svg');
+    if(svg) svg.style.color = getComputedStyle(document.documentElement).getPropertyValue('--orange').trim();
     const t = new bootstrap.Toast(el);
     t.show();
   });

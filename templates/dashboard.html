@@ -4,78 +4,86 @@
 <meta charset="utf-8">
 <title>Stock</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-/* contenedor bottom-center para toasts */
-.toast-container-bottom {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1080;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  pointer-events: none; /* clicks pasan a los toasts individuales */
-}
-
-/* TOASTS: más grandes y visibles */
-.toast {
-  pointer-events: auto;
-  min-width: 360px;    /* más ancho */
-  max-width: 560px;    /* más ancho */
-  border-radius: 0.6rem;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  overflow: hidden;
-}
-
-/* cuerpo del toast con mayor padding y tamaño de fuente */
-.toast .toast-body {
-  padding: 1rem 1.25rem;
-  font-size: 1rem;
-  line-height: 1.2;
-}
-
-/* variantes visuales más claras para contrastar */
-.toast .bg-warning { color: #2d2d2d !important; }
-</style>
+<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body>
 <div class="container py-4">
-  <h2 class="mb-4">📦 Stock visual</h2>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="mb-3">
-        {% for cat,msg in messages %}
-          <div class="alert alert-{{cat}} alert-dismissible fade show" role="alert">
-            {{ msg }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
+  <!-- CONTROL DASHBOARD -->
+  <div class="control-panel mb-4">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h4 class="m-0">Panel</h4>
+        <small class="stat-sub">Herramientas rápidas — paleta naranja/negro</small>
       </div>
-    {% endif %}
-  {% endwith %}
 
+      <div class="d-flex align-items-center gap-3">
+        <div class="text-center">
+          <div class="stat-sub">Productos</div>
+          <div class="stat-value">{{ total_products }}</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-sub">Ítems</div>
+          <div class="stat-value">{{ total_items }}</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-sub">Bajo stock</div>
+          <div class="stat-value orange">{{ low_stock }}</div>
+        </div>
+
+        <div class="d-flex gap-2 ms-3">
+          {% if role == 'admin' %}
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto">➕ Agregar</button>
+            <a href="{{ url_for('audit_page') }}" class="btn btn-dark">📝 Auditoría</a>
+            <a href="{{ url_for('audit_export') }}" class="btn" style="background:var(--orange);color:#111">CSV</a>
+          {% endif %}
+          <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">📦 Inventario</a>
+          <a href="{{ url_for('logout') }}" class="btn btn-secondary">Salir</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- FIN CONTROL DASHBOARD -->
+
+  <!-- Título y acciones -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>📦 Stock visual</h2>
+    {% if role == 'admin' %}
+      <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto">➕ Agregar producto</button>
+    {% endif %}
+  </div>
+
+  <!-- GRID DE PRODUCTOS -->
   <div class="row">
     {% for id,p in inventario.items() %}
       <div class="col-md-3 mb-4">
         <div class="card shadow-sm">
-          <img src="{{ url_for('static', filename='productos/' + p['imagen']) }}"
+          <img src="{{ url_for('static', filename='productos/' + p.get('imagen','default.png')) }}"
                onerror="this.onerror=null;this.src='https://via.placeholder.com/400x300?text=Sin+imagen';"
                class="card-img-top" style="height:180px;object-fit:cover;">
           <div class="card-body text-center">
-            <h6 class="d-flex justify-content-between align-items-center">
-              <span>{{ p['nombre'] }}</span>
-              {% if p['cantidad'] == 0 %}
-                <span class="badge bg-danger">AGOTADO</span>
-              {% elif p['cantidad'] <= p.get('stock_min',0) %}
-                <span class="badge bg-warning text-dark">BAJO</span>
-              {% else %}
-                <span class="badge bg-success">OK</span>
-              {% endif %}
-            </h6>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="mb-0">{{ p['nombre'] }}</h6>
+              <small class="text-muted">#{{ p.get('sku', '—') }}</small>
+            </div>
 
-            <p><strong class="{% if p['cantidad']==0 %}text-danger{% elif p['cantidad']<=p.get('stock_min',0) %}text-warning{% else %}text-success{% endif %}">{{ p['cantidad'] }}</strong></p>
+            <p>
+              <strong class="{% if p['cantidad']==0 %}text-danger{% elif p['cantidad']<=p.get('stock_min',0) %}text-warning{% else %}text-success{% endif %}">
+                {{ p['cantidad'] }}
+              </strong>
+            </p>
+
+            <div class="mb-2">
+              {% if p.get('categoria') %}
+                <span class="badge badge-category">{{ p['categoria'] }}</span>
+              {% endif %}
+              {% if p.get('color') %}
+                <span class="badge badge-color" style="background:{{ p['color'] }};">{{ p['color'] }}</span>
+              {% endif %}
+              {% if p.get('unidad') %}
+                <span class="badge bg-info text-dark">{{ p['unidad'] }}</span>
+              {% endif %}
+            </div>
 
             <div class="d-flex justify-content-center gap-2">
               <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalEntrada" onclick="setProducto({{ id }},'add')">➕</button>
@@ -90,7 +98,76 @@
   <a href="{{ url_for('logout') }}" class="btn btn-secondary mt-3">Cerrar sesión</a>
 </div>
 
-<!-- modals (unchanged) -->
+<!-- MODALES Y TOASTS (se mantienen igual) -->
+<div class="modal fade" id="modalNuevoProducto" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <form method="POST" action="{{ url_for('create_product') }}" enctype="multipart/form-data" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">➕ Nuevo producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <div class="mb-2">
+              <label class="form-label">Nombre</label>
+              <input name="nombre" class="form-control" placeholder="Nombre del producto" required>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">Cantidad</label>
+                <input name="cantidad" type="number" class="form-control" min="0" value="0">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Stock mínimo</label>
+                <input name="stock_min" type="number" class="form-control" min="0" value="0">
+              </div>
+            </div>
+
+            <div class="row g-2 mt-2">
+              <div class="col-md-6">
+                <label class="form-label">Unidad</label>
+                <select name="unidad" class="form-select">
+                  <option value="Unidades">Unidades</option>
+                  <option value="Caja">Caja</option>
+                  <option value="Saco">Saco</option>
+                  <option value="Metro">Metro</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Categoría</label>
+                <input name="categoria" class="form-control" placeholder="Ej: Cables, Herramientas">
+              </div>
+            </div>
+
+            <div class="mt-2">
+              <label class="form-label">Color (hex o nombre)</label>
+              <input name="color" class="form-control" placeholder="#ff7a00 o naranja">
+              <div class="form-help">Usado para mostrar una etiqueta del color en la tarjeta del producto.</div>
+            </div>
+          </div>
+
+          <div class="col-md-4 text-center">
+            <label class="form-label">Imagen</label>
+            <div class="preview-box mb-2">
+              <img id="previewNuevoProducto" src="{{ url_for('static', filename='productos/default.png') }}" alt="preview" style="width:100%;height:140px;object-fit:cover;">
+            </div>
+            <input name="imagen_file" id="imagen_file" type="file" accept="image/*" class="form-control">
+            <div class="form-help">Formatos: png, jpg, jpeg, gif, webp — máximo 5MB</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-warning">Crear producto</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="modal fade" id="modalEntrada" tabindex="-1"><div class="modal-dialog">
 <form method="POST" action="{{ url_for('add_stock') }}" class="modal-content">
   <div class="modal-header"><h5 class="modal-title">➕ Agregar stock</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
@@ -109,16 +186,30 @@
 <div id="toastContainer" class="toast-container-bottom" aria-live="polite" aria-atomic="true">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for cat, msg in messages %}
-      {# mapear warning a clase texto oscuro, el resto usar text-white para contraste #}
-      {% if cat == 'warning' %}
-        {% set body_classes = 'bg-warning text-dark p-2 rounded' %}
-      {% elif cat == 'info' %}
-        {% set body_classes = 'bg-info text-white p-2 rounded' %}
+      {# elegir icono SVG según tipo pero mantener paleta naranja/negro #}
+      {% if cat == 'success' %}
+        {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' %}
+        {% set title = 'Éxito' %}
+      {% elif cat == 'warning' %}
+        {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a1.99 1.99 0 0 0 1.71 3h16.94a1.99 1.99 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="0" fill="currentColor"/></svg>' %}
+        {% set title = 'Atención' %}
+      {% elif cat == 'danger' %}
+        {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.36 5.64L5.64 18.36M5.64 5.64l12.72 12.72" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' %}
+        {% set title = 'Error' %}
       {% else %}
-        {% set body_classes = 'bg-' + cat + ' text-white p-2 rounded' %}
+        {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/></svg>' %}
+        {% set title = 'Notificación' %}
       {% endif %}
-      <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-        <div class="toast-body {{ body_classes }}">
+
+      <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3500">
+        <div class="toast-header custom" style="color:var(--orange);">
+          <span style="color:var(--orange);display:flex;align-items:center;">
+            {{ svg_path | safe }}
+          </span>
+          <strong class="me-auto toast-title">{{ title }}</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+        <div class="toast-body">
           {{ msg }}
         </div>
       </div>
@@ -133,13 +224,49 @@ function setProducto(id,tipo){ if(tipo==='add') document.getElementById('entrada
 document.addEventListener('DOMContentLoaded', function(){
   const toastContainer = document.getElementById('toastContainer');
   if (!toastContainer) return;
-  // inicializa y muestra todos los toasts presentes
   const toastEls = toastContainer.querySelectorAll('.toast');
   toastEls.forEach(function(el){
+    // aplicar color de icono naranja (usa currentColor for strokes/fills)
+    const svg = el.querySelector('svg');
+    if(svg) svg.style.color = getComputedStyle(document.documentElement).getPropertyValue('--orange').trim();
     const t = new bootstrap.Toast(el);
     t.show();
   });
 });
+
+  // preview imagen seleccionada en nuevo producto
+  document.getElementById('imagen_file')?.addEventListener('change', function(e){
+    const file = e.target.files[0];
+    const preview = document.getElementById('previewNuevoProducto');
+    if (!file || !preview) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){ preview.src = ev.target.result; }
+    reader.readAsDataURL(file);
+  });
+
+  // validación cliente para formulario nuevo producto
+  (function(){
+    const form = document.querySelector('#modalNuevoProducto form');
+    if (!form) return;
+    const fileInput = form.querySelector('input[name="imagen_file"]');
+    const allowed = ['png','jpg','jpeg','gif','webp'];
+    const maxBytes = 5 * 1024 * 1024;
+    form.addEventListener('submit', function(e){
+      const nombre = form.querySelector('input[name="nombre"]').value.trim();
+      if (!nombre) { e.preventDefault(); alert('Nombre requerido'); return false; }
+      const cantidad = Number(form.querySelector('input[name="cantidad"]').value);
+      const stock_min = Number(form.querySelector('input[name="stock_min"]').value);
+      if (isNaN(cantidad) || cantidad < 0) { e.preventDefault(); alert('Cantidad inválida'); return false; }
+      if (isNaN(stock_min) || stock_min < 0) { e.preventDefault(); alert('Stock mínimo inválido'); return false; }
+      if (fileInput && fileInput.files.length) {
+        const f = fileInput.files[0];
+        const ext = f.name.split('.').pop().toLowerCase();
+        if (!allowed.includes(ext)) { e.preventDefault(); alert('Formato de imagen no permitido'); return false; }
+        if (f.size > maxBytes) { e.preventDefault(); alert('La imagen supera 5MB'); return false; }
+      }
+      return true;
+    });
+  })();
 </script>
 </body>
 </html>
