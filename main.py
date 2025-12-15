@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import os, json, uuid, csv, io, datetime
+import os, json, uuid, io, csv, datetime
 
 app = Flask(__name__)
 BASE = os.path.dirname(__file__)
@@ -15,9 +15,35 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB
 
-# Users (hashed)
+# Users (hashed) - ahora persistentes en users.json
 _raw_users = {"admin": ("1234", "admin"), "operador": ("1234", "operador")}
-USERS = {u: {"password": generate_password_hash(pw), "role": r} for u, (pw, r) in _raw_users.items()}
+USERS_FILE = os.path.join(BASE, "users.json")
+
+def save_users(users):
+    # Guardar usuarios (incluye password hashed) en disco
+    serial = {}
+    for u, v in users.items():
+        serial[u] = {"password": v.get("password"), "role": v.get("role", "")}
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(serial, f, ensure_ascii=False, indent=2)
+
+def load_users():
+    # Cargar desde users.json si existe; si no, crear con _raw_users + cuenta 'china'
+    if os.path.exists(USERS_FILE):
+        try:
+            with open(USERS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return {u: {"password": v["password"], "role": v.get("role","")} for u,v in data.items()}
+        except Exception:
+            pass
+    # build defaults
+    users = {u: {"password": generate_password_hash(pw), "role": r} for u,(pw,r) in _raw_users.items()}
+    # usuario especial
+    users.setdefault("china", {"password": generate_password_hash("changeme"), "role": "China Import"})
+    save_users(users)
+    return users
+
+USERS = load_users()
 
 # Inventory & Audit persistence
 INV_FILE = os.path.join(BASE, "inventory.json")
@@ -100,9 +126,17 @@ def role_required(role_name):
     def deco(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if session.get("role") != role_name:
-                flash("Permiso denegado.", "danger")
-                return redirect(url_for("dashboard"))
+            user_role = session.get("role")
+            # Si se solicita acceso exclusivo a "China Import", exigir exactamente ese rol
+            if role_name == "China Import":
+                if user_role != "China Import":
+                    flash("Permiso denegado.", "danger")
+                    return redirect(url_for("dashboard"))
+            else:
+                # Para cualquier otro rol, permitir si coincide o si es "China Import" (superusuario)
+                if user_role != role_name and user_role != "China Import":
+                    flash("Permiso denegado.", "danger")
+                    return redirect(url_for("dashboard"))
             return f(*args, **kwargs)
         return wrapper
     return deco
@@ -289,7 +323,11 @@ def delete_product(pid):
     data = INVENTARIO.pop(pid)
     save_inventory(INVENTARIO)
     flash(f"Producto '{data.get('nombre')}' eliminado.", "info")
-    log_audit("delete_product", session.get("user"), pid=pid, sku=data.get("sku"), details=data)
+    # auditoría
+    try:
+        log_audit("delete_product", session.get("user"), pid=pid, sku=data.get("sku"), details=data)
+    except Exception:
+        pass
     return redirect(url_for("dashboard"))
 
 # AUDIT page (admin) with filters
@@ -380,6 +418,63 @@ def audit_export():
         writer.writerow([e.get("ts"), e.get("user"), e.get("action"), e.get("pid"), e.get("sku"), json.dumps(e.get("details"), ensure_ascii=False)])
     output = si.getvalue()
     return Response(output, mimetype="text/csv", headers={"Content-Disposition":"attachment;filename=audit.csv"})
+
+def count_admins():
+    return sum(1 for u,v in USERS.items() if v.get("role") == "admin")
+
+# ---- China Import panel & actions ----
+@app.route("/china")
+@login_required
+@role_required("China Import")
+def china_panel():
+    # lista de usuarios (no incluye contraseñas en template)
+    safe_users = {u: {"role": v["role"]} for u, v in USERS.items()}
+    return render_template("china_panel.html", users=safe_users, me=session.get("user"))
+
+@app.route("/china/role", methods=["POST"])
+@login_required
+@role_required("China Import")
+def china_change_role():
+    username = (request.form.get("username") or "").strip()
+    newrole = (request.form.get("role") or "").strip()
+    if not username or username not in USERS:
+        flash("Usuario inválido.", "warning")
+        return redirect(url_for("china_panel"))
+
+    old = USERS[username].get("role")
+    # protección: no dejar sin administradores al sistema
+    if old == "admin" and newrole != "admin" and count_admins() <= 1:
+        flash("No se puede quitar el último admin.", "warning")
+        return redirect(url_for("china_panel"))
+
+    USERS[username]["role"] = newrole or ""
+    save_users(USERS)
+    flash(f"Rol de {username} cambiado: {old} → {newrole}", "success")
+    log_audit("change_role", session.get("user"), details={"user": username, "from": old, "to": newrole})
+    return redirect(url_for("china_panel"))
+
+@app.route("/china/delete_user", methods=["POST"])
+@login_required
+@role_required("China Import")
+def china_delete_user():
+    username = (request.form.get("username") or "").strip()
+    if not username or username not in USERS:
+        flash("Usuario inválido.", "warning")
+        return redirect(url_for("china_panel"))
+    data = USERS[username]
+    # protección: no eliminar el último admin
+    if data.get("role") == "admin" and count_admins() <= 1:
+        flash("No se puede eliminar el último admin.", "warning")
+        return redirect(url_for("china_panel"))
+    # protección: no eliminar al propio usuario (evita auto-bloqueo)
+    if username == session.get("user"):
+        flash("No puedes eliminar tu propia cuenta desde aquí.", "warning")
+        return redirect(url_for("china_panel"))
+    log_audit("delete_user", session.get("user"), details={"user": username, "role": data.get("role")})
+    flash(f"Usuario '{username}' eliminado.", "info")
+    save_users(USERS)
+    data = USERS.pop(username)
+    return redirect(url_for("china_panel"))
 
 if __name__ == "__main__":
     app.run(debug=True)

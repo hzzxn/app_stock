@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Stock</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/styles.css', v='3') }}" rel="stylesheet">
 </head>
 <body>
 <div class="container py-4">
@@ -32,7 +32,10 @@
         </div>
 
         <div class="d-flex gap-2 ms-3">
-          {% if role == 'admin' %}
+          {% if role == 'China Import' %}
+            <a href="{{ url_for('china_panel') }}" class="btn btn-danger">China Panel</a>
+          {% endif %}
+          {% if role in ['admin', 'China Import'] %}
             <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto">➕ Agregar</button>
             <a href="{{ url_for('audit_page') }}" class="btn btn-dark">📝 Auditoría</a>
             <a href="{{ url_for('audit_export') }}" class="btn" style="background:var(--orange);color:#111">CSV</a>
@@ -47,9 +50,27 @@
 
   <!-- Título y acciones -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>📦 Stock visual</h2>
+    <div>
+      <div class="page-title">
+        <div class="icon" aria-hidden="true">
+          <!-- icono caja SVG, se adapta al tema -->
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M21 7.5v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9L12 3l9 4.5z"/>
+          </svg>
+        </div>
+
+        <div>
+          <h2>Stock visual</h2>
+          <div class="subtitle">Visor rápido del inventario</div>
+          <div class="accent-line"></div>
+        </div>
+      </div>
+    </div>
+
     {% if role == 'admin' %}
       <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto">➕ Agregar producto</button>
+    {% else %}
+      <div></div>
     {% endif %}
   </div>
 
@@ -57,10 +78,10 @@
   <div class="row">
     {% for id,p in inventario.items() %}
       <div class="col-md-3 mb-4">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm product-card"> <!-- añadida clase product-card -->
           <img src="{{ url_for('static', filename='productos/' + p.get('imagen','default.png')) }}"
                onerror="this.onerror=null;this.src='https://via.placeholder.com/400x300?text=Sin+imagen';"
-               class="card-img-top" style="height:180px;object-fit:cover;">
+               class="card-img-top">
           <div class="card-body text-center">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <h6 class="mb-0">{{ p['nombre'] }}</h6>
@@ -88,6 +109,15 @@
             <div class="d-flex justify-content-center gap-2">
               <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalEntrada" onclick="setProducto({{ id }},'add')">➕</button>
               <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#modalSalida" onclick="setProducto({{ id }},'remove')">➖</button>
+
+              {% if role in ['admin', 'China Import'] %}
+                <form method="POST"
+                      action="{{ url_for('delete_product', pid=id) }}"
+                      onsubmit='return confirm({{ ("¿Eliminar el producto " ~ p.nombre ~ " (SKU " ~ (p.get("sku","—")) ~ ")? Esta acción no se puede deshacer.") | tojson }});'
+                      style="display:inline;">
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar producto">🗑️</button>
+                </form>
+              {% endif %}
             </div>
           </div>
         </div>

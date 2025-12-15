@@ -1,15 +1,8 @@
 {
-  "1": {
-    "nombre": "Cable USB",
-    "cantidad": 0,
-    "tipo": "Unidades",
-    "imagen": "default.png",
-    "stock_min": 3
-  },
   "2": {
     "sku": "P0002",
     "nombre": "Zapatera Pegable",
-    "cantidad": 21,
+    "cantidad": 20,
     "tipo": "Unidades",
     "imagen": "default.png",
     "stock_min": 0,

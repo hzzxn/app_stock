@@ -72,9 +72,78 @@ body{
 .table tbody td{color:#e6e6e6}
 .table tbody td pre{color:#cfcfcf;font-size:0.9rem;white-space:pre-wrap}
 
-/* Misc */
-.card-img-top{background:#222}
-@media (max-width:768px){
-  .card .card-img-top{height:140px}
-  .toast{min-width:300px}
+/* Producto: tarjetas */
+.product-card{
+  background: var(--card-bg) !important;
+  color: var(--white) !important;
+  border: 1px solid rgba(255,255,255,0.04) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4) !important;
 }
+.product-card .card-body h6,
+.product-card .card-body p,
+.product-card .card-body small {
+  color: var(--white) !important;
+}
+.product-card .badge-category{
+  background: rgba(255,255,255,0.03);
+  color: var(--white);
+  border: 1px solid rgba(255,255,255,0.02);
+}
+
+/* Imagen del producto: tamaño por defecto 300px, responsivo en móvil */
+.product-card .card-img-top{
+  height: 300px !important;
+  object-fit: cover !important;
+  background:#0f0f0f;
+}
+
+/* reducción en pantallas pequeñas */
+@media (max-width: 768px){
+  .product-card .card-img-top{
+    height: 180px !important;
+  }
+}
+
+/* Página - título bonito para "Stock visual" */
+.page-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.page-title .icon{
+  width:52px;
+  height:52px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--orange),#ffb070);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 8px 24px rgba(0,0,0,0.45);
+  flex:0 0 52px;
+}
+.page-title .icon svg{width:28px;height:28px;fill:#111}
+.page-title h2{
+  margin:0;
+  font-size:1.85rem;
+  font-weight:800;
+  letter-spacing:0.2px;
+  color:var(--white);
+}
+.page-title .subtitle{
+  font-size:0.95rem;
+  color:var(--muted);
+  margin-top:4px;
+}
+.page-title .accent-line{
+  height:3px;
+  width:64px;
+  background:var(--orange);
+  border-radius:3px;
+  margin-top:8px;
+}
+@media (max-width:768px){
+  .page-title h2{font-size:1.4rem}
+  .page-title .icon{width:44px;height:44px}
+}
+
+/* Misc */.card-img-top{background:#222}@media (max-width:768px){  .card .card-img-top{height:140px}  .toast{min-width:300px}}
