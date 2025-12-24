@@ -1,0 +1,16 @@
+# ==============================================================================
+# DEPENDENCIAS - China Import Stock System
+# ==============================================================================
+# Archivo generado para deploy en Render (plan gratuito compatible)
+# ==============================================================================
+
+Flask==3.0.0
+Werkzeug==3.0.1
+python-dateutil
+pytz
+
+
+# ==============================================================================
+# DEPENDENCIAS DE DESARROLLO (opcional, no necesarias en producción)
+# ==============================================================================
+# pytest  # Descomentar si necesitas correr tests en CI/CD
