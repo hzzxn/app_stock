@@ -1,14 +1,14 @@
 {
   "admin": {
-    "password": "scrypt:32768:8:1$gRAHj3lhMDMpwgoN$a79048982e8fa5286899314ea027f393b2167c7a7d5d81698c36452bfd6332531f5ac9bfb6e6a91282489cb7b275a336d71f777c80fb86e7afb790970080afa8",
+    "password": "scrypt:32768:8:1$qUs9huiJUmPyZEkY$a6c199cc25413e87bd92564703adbe16153603957e6612111869f3052bd85ec22f458074d01ad34297390ef312a7c12655094b2e45c6bfad94f145ace4b038b7",
     "role": "admin"
   },
   "operador": {
-    "password": "scrypt:32768:8:1$6qvTJPr3E5cRJUta$c5e45c62dbf80a93551f0f738d88e090c69ad45d9dfebcd9a708594771d75e6a8371797900984ae9e335b4a07447bf589dc3baa4b61cb4abe7eb757ff543dbd0",
+    "password": "scrypt:32768:8:1$TFIFxpLURqvutSW1$813ac830ece624ca07ba6e938a56942ad5885b3273f750ea04a112bbfc8cadcf504afd6af79696f954fbbe54cd8db01422fcd9debc9dd054f7d287e29df3407f",
     "role": "operador"
   },
   "china": {
-    "password": "scrypt:32768:8:1$zxo2d0ik6AwER6V6$a685c16a30c53848de4229e2ac2524e0b54b2086946403f89e32ce367548660f373946b839169e9fbcd28578030994f865453f9b5a929de4f424f9c23acac9b0",
+    "password": "scrypt:32768:8:1$sbVAYIUT6dGN1Jje$6ff6ca4412180c96fd6b4dfa905c25861e6d798fbeda034b48cdec7ad2d8e963c1b5e7e0d8a392041926bb743c83623b8f18df02cbe395d1d6de3aa53bedc7e7",
     "role": "China Import"
   }
 }

@@ -1,0 +1,131 @@
+# ==============================================================================
+# .gitignore - China Import Stock System
+# ==============================================================================
+# Este archivo asegura que datos sensibles, logs y archivos temporales
+# NO se suban al repositorio público de GitHub.
+# ==============================================================================
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DATOS DE PRODUCCIÓN - NUNCA SUBIR
+# ═══════════════════════════════════════════════════════════════════════════════
+# Contienen datos reales del negocio: inventario, ventas, usuarios, etc.
+# El repositorio debe incluir solo el código, no los datos.
+
+inventory.json
+sales.json
+audit.json
+users.json
+user_settings.json
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# BACKUPS - NUNCA SUBIR
+# ═══════════════════════════════════════════════════════════════════════════════
+# Contienen copias de los datos de producción
+
+backups/
+backup_*
+*.backup
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGS Y PROFILING - NO SUBIR
+# ═══════════════════════════════════════════════════════════════════════════════
+# Archivos de diagnóstico y rendimiento, no necesarios en el repo
+
+logs/
+*.log
+performance_*.json
+slow_functions.log
+slow_routes.log
+payment_debug.log
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VARIABLES DE ENTORNO - NUNCA SUBIR
+# ═══════════════════════════════════════════════════════════════════════════════
+# Contienen secretos como SECRET_KEY, credenciales de BD, etc.
+
+.env
+.env.local
+.env.production
+.env.*.local
+*.env
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PYTHON - CACHE Y BYTECODE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ENTORNOS VIRTUALES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+venv/
+ENV/
+env/
+.venv/
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IDE Y EDITORES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SISTEMA OPERATIVO
+# ═══════════════════════════════════════════════════════════════════════════════
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TESTING
+# ═══════════════════════════════════════════════════════════════════════════════
+
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMÁGENES DE PRODUCTOS SUBIDAS POR USUARIOS
+# ═══════════════════════════════════════════════════════════════════════════════
+# Mantener solo default.png como placeholder
+
+static/productos/*
+!static/productos/default.png
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ARCHIVOS TEMPORALES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+*.tmp
+*.temp
+*.bak
