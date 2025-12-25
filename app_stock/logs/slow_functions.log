@@ -1,0 +1,50 @@
+
+⚠️ [LENTO] 2025-12-23 15:41:05
+Función: Cargar inventario
+Tiempo: 470 ms
+────────────────────────────────────────
+
+🔴 [CRÍTICO] 2025-12-23 15:43:07
+Función: Cargar auditoría
+Tiempo: 4000 ms
+────────────────────────────────────────
+
+🔴 [CRÍTICO] 2025-12-23 15:43:07
+Función: Registrar auditoría
+Tiempo: 4145 ms
+────────────────────────────────────────
+
+🔴 [CRÍTICO] 2025-12-23 18:03:04
+Función: Cargar ventas
+Tiempo: 11284 ms
+────────────────────────────────────────
+
+⚠️ [LENTO] 2025-12-23 20:31:38
+Función: Cargar auditoría
+Tiempo: 316 ms
+────────────────────────────────────────
+
+🔴 [CRÍTICO] 2025-12-23 20:31:39
+Función: Registrar auditoría
+Tiempo: 1171 ms
+────────────────────────────────────────
+
+🔴 [CRÍTICO] 2025-12-23 20:31:47
+Función: Cargar ventas
+Tiempo: 1029 ms
+────────────────────────────────────────
+
+⚠️ [LENTO] 2025-12-24 10:26:22
+Función: Cargar auditoría
+Tiempo: 382 ms
+────────────────────────────────────────
+
+⚠️ [LENTO] 2025-12-24 10:26:22
+Función: Registrar auditoría
+Tiempo: 520 ms
+────────────────────────────────────────
+
+🔴 [CRÍTICO] 2025-12-24 10:57:27
+Función: Cargar ventas
+Tiempo: 1186 ms
+────────────────────────────────────────
