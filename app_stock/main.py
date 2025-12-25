@@ -13,7 +13,7 @@ from queue import Queue
 import atexit
 
 # Sistema de profiling interno
-from performance_logger import init_profiling, profile_function
+from app_stock.performance_logger import init_profiling, profile_function
 
 # Sistema de backups automáticos
 from services.backup_service import run_startup_backup
@@ -3729,4 +3729,5 @@ if __name__ == "__main__":
         print(f"  Acceso red WiFi: http://<TU_IP_LOCAL>:{PORT}")
         print(f"{'='*50}\n")
     
+
     app.run(host=HOST, port=PORT, debug=DEBUG)
