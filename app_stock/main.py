@@ -189,7 +189,7 @@ BASE = os.path.dirname(__file__)
 # ═══════════════════════════════════════════════════════════════════════════════
 # True = Sistema limpio, sin datos de prueba ni usuarios demo
 # False = Modo desarrollo con logging verbose
-PRODUCTION_MODE = True
+PRODUCTION_MODE = False
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONFIGURACIÓN DE SESIONES - Compatible con acceso por IP local (WiFi)
@@ -3737,4 +3737,5 @@ if __name__ == "__main__":
         print(f"  Acceso red WiFi: http://<TU_IP_LOCAL>:{PORT}")
         print(f"{'='*50}\n")
     
+
     app.run(host=HOST, port=PORT, debug=DEBUG)
