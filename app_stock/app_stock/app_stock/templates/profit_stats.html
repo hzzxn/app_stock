@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ganancias y Pérdidas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="{{ url_for('static', filename='css/styles.css', v='4') }}" rel="stylesheet">
+  <style>
+    /* Tarjetas de estadísticas principales */
+    .profit-card {
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: transform 0.2s;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .profit-card:hover {
+      transform: translateY(-2px);
+    }
+    
+    /* Colores semánticos */
+    .profit-card.income {
+      background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+      border-left: 4px solid #28a745;
+    }
+    .profit-card.income .value { color: #28a745 !important; }
+    
+    .profit-card.cost {
+      background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+      border-left: 4px solid #ffc107;
+    }
+    .profit-card.cost .value { color: #ffc107 !important; }
+    
+    .profit-card.profit {
+      background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(0, 123, 255, 0.05));
+      border-left: 4px solid #007bff;
+    }
+    .profit-card.profit .value { color: #007bff !important; }
+    
+    .profit-card.loss {
+      background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+      border-left: 4px solid #dc3545;
+    }
+    .profit-card.loss .value { color: #dc3545 !important; }
+    
+    .profit-card .label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+    .profit-card .value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0;
+    }
+    .profit-card .sub {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    
+    /* Filtros */
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: transparent;
+      color: var(--text);
+      transition: all 0.2s;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #000;
+    }
+    
+    /* Tabla de desglose */
+    .breakdown-table {
+      font-size: 15px;
+    }
+    .breakdown-table th {
+      color: var(--text-secondary);
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .breakdown-table td {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-weight: 500;
+    }
+    .breakdown-table .positive { color: #28a745; }
+    .breakdown-table .negative { color: #dc3545; }
+    
+    /* Resumen rápido */
+    .quick-stat {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+    .quick-stat i {
+      font-size: 1.25rem;
+      opacity: 0.7;
+    }
+    .quick-stat .number {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    /* Nota informativa */
+    .info-note {
+      background: rgba(255, 193, 7, 0.1);
+      border-left: 3px solid #ffc107;
+      padding: 0.75rem 1rem;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .info-note i {
+      color: #ffc107;
+    }
+  </style>
+</head>
+<body class="{{ user_theme }}">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MOBILE NAVBAR
+═══════════════════════════════════════════════════════════════════════════ -->
+<nav class="mobile-navbar hide-desktop">
+  <a href="{{ url_for('sales_page') }}" class="hamburger-btn" aria-label="Volver">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div class="navbar-brand">
+    <div class="brand-logo brand-logo--mobile">
+      <img src="{{ url_for('static', filename='branding/logo_icon.png') }}" alt="China Import" 
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="brand-logo-fallback brand-logo-fallback--icon" style="display:none;">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+    </div>
+    <span>Ganancias</span>
+  </div>
+  <a href="{{ url_for('dashboard') }}" class="hamburger-btn" aria-label="Inicio">
+    <i class="bi bi-house"></i>
+  </a>
+</nav>
+<div class="container py-4">
+  
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       ENCABEZADO
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="mb-0" style="color: var(--text);">
+        <i class="bi bi-graph-up-arrow me-2" style="color: var(--orange);"></i>
+        Ganancias y Pérdidas
+      </h3>
+      <small class="text-muted">Solo ventas COMPLETADAS</small>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('sales_page') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Ventas
+      </a>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-house me-1"></i>Inicio
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       FILTROS DE PERÍODO
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="card p-3 mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <span class="text-muted me-2">Período:</span>
+      <a href="{{ url_for('profit_stats', period='today') }}" 
+         class="filter-btn text-decoration-none {{ 'active' if period == 'today' else '' }}">
+        Hoy
+      </a>
+      <a href="{{ url_for('profit_stats', period='week') }}" 
+         class="filter-btn text-decoration-none {{ 'active' if period == 'week' else '' }}">
+        Esta semana
+      </a>
+      <a href="{{ url_for('profit_stats', period='month') }}" 
+         class="filter-btn text-decoration-none {{ 'active' if period == 'month' else '' }}">
+        Este mes
+      </a>
+      <button type="button" class="filter-btn {{ 'active' if period == 'custom' else '' }}" 
+              data-bs-toggle="collapse" data-bs-target="#customRange">
+        <i class="bi bi-calendar-range me-1"></i>Personalizado
+      </button>
+    </div>
+    
+    <!-- Rango personalizado -->
+    <div class="collapse {{ 'show' if period == 'custom' else '' }}" id="customRange">
+      <form method="GET" class="row g-2 align-items-end">
+        <input type="hidden" name="period" value="custom">
+        <div class="col-auto">
+          <label class="form-label small text-muted mb-1">Desde</label>
+          <input type="date" name="start" class="form-control form-control-sm" 
+                 value="{{ custom_start }}" required>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small text-muted mb-1">Hasta</label>
+          <input type="date" name="end" class="form-control form-control-sm" 
+                 value="{{ custom_end }}" required>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-search me-1"></i>Filtrar
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Rango actual -->
+    <div class="text-muted small mt-2">
+      <i class="bi bi-calendar3 me-1"></i>
+      Mostrando: <strong>{{ stats.date_range.start }}</strong> al <strong>{{ stats.date_range.end }}</strong>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       TARJETAS PRINCIPALES
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="row g-3 mb-4">
+    <!-- Ingresos -->
+    <div class="col-md-3 col-6">
+      <div class="profit-card income">
+        <div class="label">
+          <i class="bi bi-cash-stack me-1"></i>Ingresos
+        </div>
+        <div class="value">S/ {{ "%.2f"|format(stats.summary.gross_income) }}</div>
+        <div class="sub">{{ stats.summary.total_sales }} ventas completadas</div>
+      </div>
+    </div>
+    
+    <!-- Costos -->
+    <div class="col-md-3 col-6">
+      <div class="profit-card cost">
+        <div class="label">
+          <i class="bi bi-box-seam me-1"></i>Costos
+        </div>
+        <div class="value">S/ {{ "%.2f"|format(stats.summary.total_cost) }}</div>
+        <div class="sub">{{ stats.summary.total_items }} ítems vendidos</div>
+      </div>
+    </div>
+    
+    <!-- Ganancia Neta -->
+    <div class="col-md-3 col-6">
+      <div class="profit-card profit">
+        <div class="label">
+          <i class="bi bi-trophy me-1"></i>Ganancia Neta
+        </div>
+        <div class="value {% if stats.summary.net_profit < 0 %}text-danger{% endif %}">
+          S/ {{ "%.2f"|format(stats.summary.net_profit) }}
+        </div>
+        <div class="sub">
+          {% if stats.summary.gross_income > 0 %}
+            {{ "%.1f"|format((stats.summary.net_profit / stats.summary.gross_income) * 100) }}% margen
+          {% else %}
+            Sin datos
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pérdidas -->
+    <div class="col-md-3 col-6">
+      <div class="profit-card loss">
+        <div class="label">
+          <i class="bi bi-exclamation-triangle me-1"></i>Pérdidas
+        </div>
+        <div class="value">S/ {{ "%.2f"|format(stats.summary.total_loss) }}</div>
+        <div class="sub">{{ stats.summary.loss_sales }} ventas con pérdida</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       RESUMEN RÁPIDO
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card p-3 h-100">
+        <h6 class="mb-3" style="color: var(--text);">
+          <i class="bi bi-bar-chart me-2" style="color: var(--orange);"></i>
+          Resumen del Período
+        </h6>
+        
+        <div class="quick-stat">
+          <i class="bi bi-check-circle text-success"></i>
+          <span>Ventas rentables:</span>
+          <span class="number text-success">{{ stats.summary.profitable_sales }}</span>
+        </div>
+        
+        <div class="quick-stat">
+          <i class="bi bi-x-circle text-danger"></i>
+          <span>Ventas con pérdida:</span>
+          <span class="number text-danger">{{ stats.summary.loss_sales }}</span>
+        </div>
+        
+        <div class="quick-stat">
+          <i class="bi bi-box text-info"></i>
+          <span>Total ítems vendidos:</span>
+          <span class="number">{{ stats.summary.total_items }}</span>
+        </div>
+        
+        {% if stats.summary.total_sales > 0 %}
+        <div class="quick-stat">
+          <i class="bi bi-calculator text-warning"></i>
+          <span>Promedio por venta:</span>
+          <span class="number">S/ {{ "%.2f"|format(stats.summary.gross_income / stats.summary.total_sales) }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card p-3 h-100">
+        <h6 class="mb-3" style="color: var(--text);">
+          <i class="bi bi-lightbulb me-2" style="color: var(--orange);"></i>
+          Información
+        </h6>
+        
+        <div class="info-note mb-2">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Solo COMPLETADAS:</strong> Las estadísticas solo incluyen ventas con estado "COMPLETADA" 
+          (pagadas y entregadas).
+        </div>
+        
+        <div class="info-note mb-2">
+          <i class="bi bi-calculator me-2"></i>
+          <strong>Ganancia:</strong> Se calcula como precio de venta menos costo de cada ítem.
+        </div>
+        
+        <div class="info-note">
+          <i class="bi bi-shield-check me-2"></i>
+          <strong>Datos internos:</strong> Los costos unitarios no se muestran al cliente final.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       DESGLOSE DIARIO
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  {% if stats.daily_breakdown %}
+  <div class="card p-3 mb-4">
+    <h6 class="mb-3" style="color: var(--text);">
+      <i class="bi bi-calendar-week me-2" style="color: var(--orange);"></i>
+      Desglose Diario
+    </h6>
+    
+    <div class="table-responsive">
+      <table class="table breakdown-table mb-0">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th class="text-end">Ingresos</th>
+            <th class="text-end">Costos</th>
+            <th class="text-end">Ganancia</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for day in stats.daily_breakdown %}
+          <tr>
+            <td>{{ day.date }}</td>
+            <td class="text-end">S/ {{ "%.2f"|format(day.income) }}</td>
+            <td class="text-end">S/ {{ "%.2f"|format(day.cost) }}</td>
+            <td class="text-end {{ 'positive' if day.profit >= 0 else 'negative' }}">
+              S/ {{ "%.2f"|format(day.profit) }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PRODUCTOS MÁS Y MENOS RENTABLES
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="row g-3">
+    <!-- Productos más rentables -->
+    {% if stats.top_products %}
+    <div class="col-md-6">
+      <div class="card p-3 h-100">
+        <h6 class="mb-3" style="color: var(--text);">
+          <i class="bi bi-trophy-fill me-2 text-success"></i>
+          Productos Más Rentables
+        </h6>
+        
+        <div class="table-responsive">
+          <table class="table breakdown-table mb-0">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th class="text-center">Vendidos</th>
+                <th class="text-end">Ganancia</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for prod in stats.top_products %}
+              <tr>
+                <td>{{ prod.name }}</td>
+                <td class="text-center">{{ prod.qty }}</td>
+                <td class="text-end positive">S/ {{ "%.2f"|format(prod.profit) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Productos con pérdida -->
+    {% if stats.loss_products %}
+    <div class="col-md-6">
+      <div class="card p-3 h-100">
+        <h6 class="mb-3" style="color: var(--text);">
+          <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>
+          Productos con Pérdida
+        </h6>
+        
+        <div class="table-responsive">
+          <table class="table breakdown-table mb-0">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th class="text-center">Vendidos</th>
+                <th class="text-end">Pérdida</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for prod in stats.loss_products %}
+              <tr>
+                <td>{{ prod.name }}</td>
+                <td class="text-center">{{ prod.qty }}</td>
+                <td class="text-end negative">S/ {{ "%.2f"|format(prod.loss) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Mensaje si no hay datos -->
+    {% if not stats.top_products and not stats.loss_products %}
+    <div class="col-12">
+      <div class="card p-4 text-center">
+        <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+        <p class="text-muted mb-0">No hay ventas COMPLETADAS en este período.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
