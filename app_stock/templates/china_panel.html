@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>China Import - Panel de Superusuario</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link href="{{ url_for('static', filename='css/styles.css', v='4') }}" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHINA PANEL - Estilos específicos del panel de superusuario
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Header del panel */
+.china-header {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: white;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+.china-header h2 {
+  margin: 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.china-header p {
+  margin: 0.5rem 0 0 0;
+  opacity: 0.9;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Cards del panel */
+.panel-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s ease;
+}
+
+.panel-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.panel-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.panel-card-icon.users { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.panel-card-icon.create { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+.panel-card-icon.password { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+
+.panel-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.panel-card-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Tabla de usuarios mejorada */
+.users-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.users-table th {
+  background: var(--bg);
+  padding: 0.75rem 1rem;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.users-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.users-table tr:last-child td {
+  border-bottom: none;
+}
+
+.users-table tr:hover td {
+  background: var(--bg);
+}
+
+/* User row styling */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.user-avatar.china { background: linear-gradient(135deg, #dc2626, #991b1b); color: white; }
+.user-avatar.admin { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+.user-avatar.operador { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+
+.user-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.user-badge.me {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+
+/* Role badges */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.role-badge.china-import {
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  color: white;
+}
+
+.role-badge.admin {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.role-badge.operador {
+  background: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
+
+/* Actions column */
+.actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Protected user indicator */
+.protected-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px dashed #dc2626;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Form styles */
+.china-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.china-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .china-form .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.china-form label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+.china-form .form-control,
+.china-form .form-select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.china-form .form-control:focus,
+.china-form .form-select:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+/* Buttons */
+.btn-china {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-china:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+  transform: translateY(-1px);
+  color: white;
+}
+
+.btn-action {
+  padding: 0.4rem 0.75rem;
+  font-size: 14px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+/* Toast notifications */
+.toast-container-bottom {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 9999;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .china-header {
+    padding: 1rem;
+  }
+  
+  .panel-card {
+    padding: 1rem;
+  }
+  
+  .users-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .actions-cell {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .stats-bar {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .stat-item {
+    flex: 1;
+    min-width: 80px;
+  }
+}
+
+/* Password visibility toggle */
+.password-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.password-toggle:hover {
+  color: var(--text);
+}
+</style>
+</head>
+<body class="{{ user_theme }}">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MOBILE NAVBAR
+═══════════════════════════════════════════════════════════════════════════ -->
+<nav class="mobile-navbar hide-desktop">
+  <a href="{{ url_for('dashboard') }}" class="hamburger-btn" aria-label="Volver">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div class="navbar-brand">
+    <div class="brand-logo brand-logo--mobile">
+      <img src="{{ url_for('static', filename='branding/logo_icon.png') }}" alt="China Import" 
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="brand-logo-fallback brand-logo-fallback--icon" style="display:none;background:#ef4444;">
+        <i class="bi bi-globe-asia-australia"></i>
+      </div>
+    </div>
+    <span>Panel Admin</span>
+  </div>
+  <a href="{{ url_for('logout') }}" class="hamburger-btn" aria-label="Salir">
+    <i class="bi bi-box-arrow-right"></i>
+  </a>
+</nav>
+
+<div class="container py-4">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       HEADER DEL PANEL
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="china-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <h2><i class="bi bi-shield-lock-fill"></i> Panel de Superusuario</h2>
+        <p>Gestión completa del sistema - Sesión: <strong>{{ me }}</strong></p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-house"></i> <span class="hide-mobile">Inicio</span>
+        </a>
+        <a href="{{ url_for('audit_page') }}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-journal-text"></i> <span class="hide-mobile">Auditoría</span>
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-light btn-sm">
+          <i class="bi bi-box-arrow-right"></i> <span class="hide-mobile">Salir</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       ESTADÍSTICAS RÁPIDAS
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="panel-card">
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-number">{{ users|length }}</span>
+        <span class="stat-label">Total usuarios</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ users.values()|selectattr('role', 'equalto', 'admin')|list|length }}</span>
+        <span class="stat-label">Administradores</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ users.values()|selectattr('role', 'equalto', 'operador')|list|length }}</span>
+        <span class="stat-label">Operadores</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ users.values()|selectattr('role', 'equalto', 'China Import')|list|length }}</span>
+        <span class="stat-label">Superusuarios</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         COLUMNA IZQUIERDA: CREAR USUARIO
+    ═══════════════════════════════════════════════════════════════════════════ -->
+    <div class="col-lg-4 col-md-6">
+      
+      <!-- Card: Crear Usuario -->
+      <div class="panel-card">
+        <div class="panel-card-header">
+          <div class="panel-card-icon create">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div>
+            <h5 class="panel-card-title">Crear Usuario</h5>
+            <p class="panel-card-subtitle">Agregar nuevo usuario al sistema</p>
+          </div>
+        </div>
+        
+        <form method="POST" action="{{ url_for('china_create_user') }}" class="china-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          
+          <div>
+            <label for="new_username">Nombre de usuario</label>
+            <input type="text" id="new_username" name="username" class="form-control" 
+                   placeholder="ej: vendedor1" required minlength="3" autocomplete="off">
+          </div>
+          
+          <div>
+            <label for="new_password">Contraseña</label>
+            <div class="password-wrapper">
+              <input type="password" id="new_password" name="password" class="form-control" 
+                     placeholder="Mínimo 4 caracteres" required minlength="4" autocomplete="new-password">
+              <button type="button" class="password-toggle" onclick="togglePassword('new_password', this)">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label for="new_role">Rol</label>
+            <select id="new_role" name="role" class="form-select">
+              <option value="operador">Operador</option>
+              <option value="admin">Administrador</option>
+            </select>
+            <small class="text-muted d-block mt-1">
+              <i class="bi bi-info-circle"></i> El rol "China Import" no puede ser asignado
+            </small>
+          </div>
+          
+          <button type="submit" class="btn btn-china w-100">
+            <i class="bi bi-plus-circle"></i> Crear Usuario
+          </button>
+        </form>
+      </div>
+
+      <!-- Card: Cambiar Contraseña -->
+      <div class="panel-card">
+        <div class="panel-card-header">
+          <div class="panel-card-icon password">
+            <i class="bi bi-key-fill"></i>
+          </div>
+          <div>
+            <h5 class="panel-card-title">Cambiar Contraseña</h5>
+            <p class="panel-card-subtitle">Restablecer contraseña de usuario</p>
+          </div>
+        </div>
+        
+        <form method="POST" action="{{ url_for('china_change_password') }}" class="china-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          
+          <div>
+            <label for="pwd_username">Usuario</label>
+            <select id="pwd_username" name="username" class="form-select" required>
+              <option value="">Seleccionar usuario...</option>
+              {% for u in users.keys() %}
+              <option value="{{ u }}">{{ u }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div>
+            <label for="change_password">Nueva contraseña</label>
+            <div class="password-wrapper">
+              <input type="password" id="change_password" name="new_password" class="form-control" 
+                     placeholder="Mínimo 4 caracteres" required minlength="4" autocomplete="new-password">
+              <button type="button" class="password-toggle" onclick="togglePassword('change_password', this)">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-warning w-100">
+            <i class="bi bi-arrow-repeat"></i> Cambiar Contraseña
+          </button>
+        </form>
+      </div>
+      
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         COLUMNA DERECHA: LISTA DE USUARIOS
+    ═══════════════════════════════════════════════════════════════════════════ -->
+    <div class="col-lg-8 col-md-6">
+      <div class="panel-card">
+        <div class="panel-card-header">
+          <div class="panel-card-icon users">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div>
+            <h5 class="panel-card-title">Usuarios del Sistema</h5>
+            <p class="panel-card-subtitle">Gestionar roles y accesos</p>
+          </div>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u, info in users.items() %}
+              {% set is_china = info.role == 'China Import' %}
+              {% set is_me = u == me %}
+              <tr>
+                <td>
+                  <div class="user-info">
+                    <div class="user-avatar {% if is_china %}china{% elif info.role == 'admin' %}admin{% else %}operador{% endif %}">
+                      {{ u[0]|upper }}
+                    </div>
+                    <div>
+                      <span class="user-name">{{ u }}</span>
+                      {% if is_me %}
+                      <span class="user-badge me"><i class="bi bi-person-check"></i> Yo</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {% if is_china %}
+                  <span class="role-badge china-import">
+                    <i class="bi bi-shield-lock-fill"></i> China Import
+                  </span>
+                  {% elif info.role == 'admin' %}
+                  <span class="role-badge admin">
+                    <i class="bi bi-person-gear"></i> Admin
+                  </span>
+                  {% else %}
+                  <span class="role-badge operador">
+                    <i class="bi bi-person"></i> Operador
+                  </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if is_china %}
+                  <!-- Usuario protegido: China Import -->
+                  <div class="protected-indicator">
+                    <i class="bi bi-lock-fill"></i>
+                    <span>Usuario protegido</span>
+                  </div>
+                  {% else %}
+                  <div class="actions-cell">
+                    <!-- Formulario cambiar rol -->
+                    <form method="POST" action="{{ url_for('china_change_role') }}" class="d-inline-flex align-items-center gap-2">
+                      <input type="hidden" name="username" value="{{ u }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <select name="role" class="form-select form-select-sm" style="width:130px">
+                        <option value="operador" {% if info.role == 'operador' %}selected{% endif %}>Operador</option>
+                        <option value="admin" {% if info.role == 'admin' %}selected{% endif %}>Admin</option>
+                      </select>
+                      <button class="btn btn-action btn-outline-primary" type="submit" title="Guardar rol">
+                        <i class="bi bi-check-lg"></i>
+                      </button>
+                    </form>
+
+                    <!-- Botón eliminar -->
+                    <form method="POST" action="{{ url_for('china_delete_user') }}" class="d-inline" 
+                          onsubmit="return confirm('¿Eliminar usuario {{ u }}? Esta acción no se puede deshacer.');">
+                      <input type="hidden" name="username" value="{{ u }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button class="btn btn-action btn-outline-danger" type="submit" title="Eliminar usuario"
+                              {% if is_me %}disabled{% endif %}>
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Info card -->
+      <div class="panel-card" style="background: rgba(220, 38, 38, 0.05); border-color: rgba(220, 38, 38, 0.2);">
+        <div class="d-flex gap-3">
+          <i class="bi bi-shield-exclamation text-danger" style="font-size: 1.5rem;"></i>
+          <div>
+            <h6 class="mb-1" style="color: var(--text);">Información de Seguridad</h6>
+            <ul class="mb-0 small text-muted" style="padding-left: 1rem;">
+              <li>El rol <strong>"China Import"</strong> es el superusuario y está protegido</li>
+              <li>No se puede eliminar ni cambiar el rol de un usuario "China Import"</li>
+              <li>Todas las acciones quedan registradas en la auditoría</li>
+              <li>Las contraseñas se almacenan con hash seguro (nunca en texto plano)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TOAST NOTIFICATIONS
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="toastContainer" class="toast-container-bottom" aria-live="polite" aria-atomic="true">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+      <div class="toast align-items-center border-0 mb-2 show
+        {% if category == 'success' %}text-bg-success
+        {% elif category == 'warning' %}text-bg-warning
+        {% elif category == 'danger' %}text-bg-danger
+        {% else %}text-bg-secondary{% endif %}"
+        role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+        <div class="d-flex">
+          <div class="toast-body">
+            {% if category == 'success' %}<i class="bi bi-check-circle me-2"></i>
+            {% elif category == 'warning' %}<i class="bi bi-exclamation-triangle me-2"></i>
+            {% elif category == 'danger' %}<i class="bi bi-x-circle me-2"></i>
+            {% else %}<i class="bi bi-info-circle me-2"></i>{% endif %}
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+      </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// FUNCIONES DEL PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Toggle visibilidad de contraseña
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const icon = btn.querySelector('i');
+  
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('bi-eye');
+    icon.classList.add('bi-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('bi-eye-slash');
+    icon.classList.add('bi-eye');
+  }
+}
+
+// Inicializar toasts
+document.addEventListener('DOMContentLoaded', function() {
+  const toastContainer = document.getElementById('toastContainer');
+  if (toastContainer) {
+    const toastEls = toastContainer.querySelectorAll('.toast');
+    toastEls.forEach(function(el) {
+      const toast = new bootstrap.Toast(el, { delay: 4000 });
+      toast.show();
+    });
+  }
+});
+</script>
+</body>
+</html>

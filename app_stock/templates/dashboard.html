@@ -1,0 +1,3693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Stock</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link href="{{ url_for('static', filename='css/styles.css', v='4') }}" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════════════════════════════════
+     ESTILOS PARA BÚSQUEDA Y FILTROS DE STOCK
+  ═══════════════════════════════════════════════════════════════════════════ */
+  
+  /* Botones de filtro */
+  .stock-filter-btn {
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .stock-filter-btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+    color: var(--text);
+  }
+  .stock-filter-btn.active {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #000;
+    font-weight: 600;
+  }
+  
+  /* Card oculta por filtro */
+  .stock-card-wrapper.filtered-out {
+    display: none !important;
+  }
+  
+  /* Input de búsqueda mejorado */
+  #stockSearch {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text);
+    padding: 0.6rem 1rem;
+    font-size: 15px;
+  }
+  #stockSearch:focus {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--orange);
+    box-shadow: 0 0 0 2px rgba(253, 126, 20, 0.2);
+  }
+  #stockSearch::placeholder {
+    color: var(--text-secondary);
+  }
+</style>
+</head>
+<body class="{{ user_theme }}">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MOBILE NAVBAR - Barra superior fija (solo visible en móvil)
+═══════════════════════════════════════════════════════════════════════════ -->
+<nav class="mobile-navbar hide-desktop">
+  <button type="button" class="hamburger-btn" id="mobileMenuToggle" aria-label="Menú">
+    <i class="bi bi-list"></i>
+  </button>
+  <div class="navbar-brand">
+    <div class="brand-logo brand-logo--mobile">
+      <img src="{{ url_for('static', filename='branding/logo_icon.png') }}" 
+           alt="China Import" 
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="brand-logo-fallback brand-logo-fallback--icon" style="display:none;">
+        <i class="bi bi-box-seam"></i>
+      </div>
+    </div>
+    <span>China Import</span>
+  </div>
+  <a href="{{ url_for('settings') }}" class="hamburger-btn" aria-label="Configuración">
+    <i class="bi bi-gear"></i>
+  </a>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MOBILE SIDEBAR - Menú lateral off-canvas
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="mobile-sidebar-overlay hide-desktop" id="mobileSidebarOverlay"></div>
+<aside class="mobile-sidebar hide-desktop" id="mobileSidebar">
+  <div class="mobile-sidebar-header">
+    <div class="brand-logo brand-logo--sidebar">
+      <img src="{{ url_for('static', filename='branding/logo_full.png') }}" 
+           alt="China Import"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <span class="brand-logo-fallback" style="display:none;"><i class="bi bi-box-seam me-2"></i>China Import</span>
+    </div>
+    <button type="button" class="mobile-sidebar-close" id="mobileSidebarClose" aria-label="Cerrar">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+  
+  <div class="mobile-sidebar-body">
+    <!-- Stats rápidos -->
+    <div class="mobile-stats">
+      <div class="mobile-stat-item">
+        <div class="stat-value">{{ total_products }}</div>
+        <div class="stat-sub">Productos</div>
+      </div>
+      <div class="mobile-stat-item">
+        <div class="stat-value">{{ total_items }}</div>
+        <div class="stat-sub">Ítems</div>
+      </div>
+      <div class="mobile-stat-item">
+        <div class="stat-value orange">{{ low_stock }}</div>
+        <div class="stat-sub">Bajo stock</div>
+      </div>
+    </div>
+    
+    <div class="mobile-nav-divider"></div>
+    
+    <!-- Navegación -->
+    <a href="{{ url_for('dashboard') }}" class="mobile-nav-link active">
+      <i class="bi bi-box-seam"></i>
+      <span>Inventario</span>
+    </a>
+    
+    {% if role in ['operador','admin','China Import'] %}
+    <a href="{{ url_for('sales_page') }}" class="mobile-nav-link">
+      <i class="bi bi-receipt"></i>
+      <span>Ver Ventas</span>
+    </a>
+    {% endif %}
+    
+    {% if role in ['admin', 'China Import'] %}
+    <div class="mobile-nav-divider"></div>
+    
+    <a href="{{ url_for('profit_stats') }}" class="mobile-nav-link">
+      <i class="bi bi-graph-up-arrow"></i>
+      <span>Ganancias</span>
+    </a>
+    
+    <a href="{{ url_for('sales_stats') }}" class="mobile-nav-link">
+      <i class="bi bi-bar-chart"></i>
+      <span>Estadísticas</span>
+    </a>
+    
+    <a href="{{ url_for('audit_page') }}" class="mobile-nav-link">
+      <i class="bi bi-clock-history"></i>
+      <span>Auditoría</span>
+    </a>
+    
+    <a href="{{ url_for('audit_export') }}" class="mobile-nav-link">
+      <i class="bi bi-download"></i>
+      <span>Exportar CSV</span>
+    </a>
+    {% endif %}
+    
+    {% if role == 'China Import' %}
+    <div class="mobile-nav-divider"></div>
+    <a href="{{ url_for('china_panel') }}" class="mobile-nav-link" style="color:#ef4444;">
+      <i class="bi bi-globe-asia-australia"></i>
+      <span>China Panel</span>
+    </a>
+    {% endif %}
+    
+    <div class="mobile-nav-divider"></div>
+    
+    <a href="{{ url_for('settings') }}" class="mobile-nav-link">
+      <i class="bi bi-gear"></i>
+      <span>Configuración</span>
+    </a>
+    
+    <a href="{{ url_for('logout') }}" class="mobile-nav-link">
+      <i class="bi bi-box-arrow-right"></i>
+      <span>Cerrar sesión</span>
+    </a>
+  </div>
+</aside>
+
+<!-- FAB Carrito (solo visible en móvil) -->
+<button type="button" class="fab-cart hide-desktop" id="fabCart" aria-label="Ver carrito" style="display:none;">
+  <i class="bi bi-cart3"></i>
+  <span class="cart-badge" id="fabCartBadge">0</span>
+</button>
+<div class="container py-4">
+
+  <!-- CONTROL DASHBOARD -->
+  <div class="control-panel mb-4">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h4 class="m-0">Panel</h4>
+        <small class="stat-sub">Herramientas rápidas — paleta naranja/negro</small>
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <div class="text-center">
+          <div class="stat-sub">Productos</div>
+          <div class="stat-value">{{ total_products }}</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-sub">Ítems</div>
+          <div class="stat-value">{{ total_items }}</div>
+        </div>
+        <div class="text-center">
+          <div class="stat-sub">Bajo stock</div>
+          <div class="stat-value orange">{{ low_stock }}</div>
+        </div>
+
+        <div class="d-flex gap-2 ms-3">
+          {% if role == 'China Import' %}
+            <a href="{{ url_for('china_panel') }}" class="btn btn-danger">China Panel</a>
+          {% endif %}
+          {% if role in ['admin', 'China Import'] %}
+            <a href="{{ url_for('audit_page') }}" class="btn btn-dark"><i class="bi bi-clock-history me-1"></i>Auditoría</a>
+          {% endif %}
+          {% if role in ['operador','admin','China Import'] %}
+            <a href="{{ url_for('sales_page') }}" class="btn btn-outline-primary"><i class="bi bi-receipt me-1"></i>Ver Ventas</a>
+          {% endif %}
+          <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-box-seam me-1"></i>Inventario</a>
+          <a href="{{ url_for('logout') }}" class="btn btn-secondary"><i class="bi bi-box-arrow-right me-1"></i>Salir</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- FIN CONTROL DASHBOARD -->
+
+  <!-- Título y acciones -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <div class="page-title">
+        <div class="icon" aria-hidden="true">
+          <!-- icono caja SVG, se adapta al tema -->
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M21 7.5v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9L12 3l9 4.5z"/>
+          </svg>
+        </div>
+
+        <div>
+          <h2>Stock visual</h2>
+          <div class="subtitle">Visor rápido del inventario</div>
+          <div class="accent-line"></div>
+        </div>
+      </div>
+    </div>
+
+    {% if role in ['admin', 'China Import'] %}
+      <div class="d-flex gap-2 hide-mobile">
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto"><i class="bi bi-plus-lg me-1"></i>Agregar producto</button>
+        <a href="{{ url_for('profit_stats') }}" class="btn btn-success"><i class="bi bi-graph-up-arrow me-1"></i>Ganancias</a>
+        <a href="{{ url_for('sales_stats') }}" class="btn btn-primary"><i class="bi bi-bar-chart me-1"></i>Estadísticas</a>
+        <a href="{{ url_for('audit_export') }}" class="btn" style="background:var(--orange);color:#111"><i class="bi bi-download me-1"></i>CSV</a>
+      </div>
+      <!-- Botón agregar producto visible en móvil -->
+      <div class="d-none d-block-mobile">
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- GRID DE PRODUCTOS -->
+  
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       BARRA DE BÚSQUEDA Y FILTROS
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="card p-3 mb-4" style="background:rgba(255,255,255,0.02);">
+    <div class="row g-3 align-items-center">
+      <!-- Búsqueda -->
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);"><i class="bi bi-search"></i></span>
+          <input type="text" 
+                 id="stockSearch" 
+                 class="form-control" 
+                 placeholder="Buscar producto, color, categoría o código…"
+                 autocomplete="off">
+        </div>
+      </div>
+      
+      <!-- Filtros de stock -->
+      <div class="col-md-6">
+        <div class="d-flex gap-2 flex-wrap">
+          <button type="button" class="btn btn-sm stock-filter-btn active" data-stock-filter="all">
+            <i class="bi bi-grid me-1"></i>Todos
+          </button>
+          <button type="button" class="btn btn-sm stock-filter-btn" data-stock-filter="in-stock">
+            <i class="bi bi-check-circle me-1"></i>Con stock
+          </button>
+          <button type="button" class="btn btn-sm stock-filter-btn" data-stock-filter="low-stock">
+            <i class="bi bi-exclamation-triangle me-1"></i>Stock bajo
+          </button>
+          <button type="button" class="btn btn-sm stock-filter-btn" data-stock-filter="out-stock">
+            <i class="bi bi-x-circle me-1"></i>Sin stock
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Contador de resultados -->
+    <div class="mt-2">
+      <small class="text-muted">
+        Mostrando <strong id="stockFilteredCount">{{ inventario|length }}</strong> de {{ inventario|length }} productos
+      </small>
+    </div>
+  </div>
+  
+  <!-- Mensaje cuando no hay resultados -->
+  <div id="stockNoResults" class="text-center py-5" style="display:none;">
+    <div style="font-size:3rem;opacity:0.5;"><i class="bi bi-inbox"></i></div>
+    <p class="text-muted mt-2">No se encontraron productos que coincidan con tu búsqueda</p>
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="stockClearSearch">
+      Limpiar búsqueda
+    </button>
+  </div>
+  
+  <div class="row" id="stockGrid">
+    {% for id,p in inventario.items() %}
+      {% set variants = p.get('variants', []) %}
+      {% set variant_count = variants|length %}
+      {# MULTI-UV: Sumar stock de todas las UV de todas las variantes #}
+      {% set ns = namespace(total_stock=0) %}
+      {% for v in variants %}
+        {% for uv_entry in v.get('units', []) %}
+          {% set ns.total_stock = ns.total_stock + (uv_entry.get('stock', 0) - uv_entry.get('reserved', 0)) %}
+        {% endfor %}
+      {% endfor %}
+      {# Fallback para productos legacy sin variantes #}
+      {% if variant_count == 0 and p['cantidad'] > 0 %}
+        {% set ns.total_stock = p['cantidad'] %}
+      {% endif %}
+      {% set total_stock = ns.total_stock %}
+      {# Construir lista de variantes para búsqueda #}
+      {% set variant_names = [] %}
+      {% for v in variants %}
+        {% for attr_key, attr_val in v.get('attributes', {}).items() %}
+          {% if variant_names.append(attr_val|string|lower) %}{% endif %}
+        {% endfor %}
+      {% endfor %}
+      {# Construir lista de UVs para búsqueda #}
+      {% set uv_names = [] %}
+      {% for v in variants %}
+        {% for uv_entry in v.get('units', []) %}
+          {% if uv_names.append(uv_entry.get('uv', '')|lower) %}{% endif %}
+          {% if uv_entry.get('label') and uv_names.append(uv_entry.get('label')|lower) %}{% endif %}
+        {% endfor %}
+      {% endfor %}
+      <div class="col-md-3 mb-4 stock-card-wrapper"
+           data-search-nombre="{{ p['nombre'] }}"
+           data-search-categoria="{{ p.get('categoria', '') }}"
+           data-search-sku="{{ p.get('sku', '') }}"
+           data-search-color="{{ p.get('color', '') }}"
+           data-search-variantes="{{ variant_names|join(',') }}"
+           data-search-unidad="{{ p.get('unidad', 'Unidades') }}"
+           data-search-uvs="{{ uv_names|join(',') }}"
+           data-stock-total="{{ total_stock }}"
+           data-stock-min="{{ p.get('stock_min', 0) }}">
+        {# Tarjeta clickeable que abre el modal del producto #}
+        <div class="card shadow-sm product-card product-card-clickable"
+             role="button"
+             tabindex="0"
+             data-bs-toggle="modal"
+             data-bs-target="#productModal"
+             data-id="{{ id }}"
+             data-name="{{ p['nombre'] }}"
+             data-sku="{{ p.get('sku', '—') }}"
+             data-stock="{{ total_stock }}"
+             data-stock-min="{{ p.get('stock_min', 0) }}"
+             data-image="{{ url_for('static', filename='productos/' + p.get('imagen','default.png')) }}"
+             data-categoria="{{ p.get('categoria', '') }}"
+             data-color="{{ p.get('color', '') }}"
+             data-unidad="{{ p.get('unidad', 'Unidades') }}"
+             data-cost="{{ p.get('cost', 0) }}"
+             data-price="{{ p.get('price', 0) }}"
+             data-variant-count="{{ variant_count }}">
+          <img src="{{ url_for('static', filename='productos/' + p.get('imagen','default.png')) }}"
+               onerror="this.onerror=null;this.src='https://via.placeholder.com/400x300?text=Sin+imagen';"
+               class="card-img-top">
+          <div class="card-body text-center">
+            <h6 class="mb-1">{{ p['nombre'] }}</h6>
+            <small class="text-muted d-block mb-1">#{{ p.get('sku', '—') }}</small>
+
+            {# Badge de variantes #}
+            {% if variant_count == 0 %}
+              <span class="badge bg-secondary mb-1" style="font-size:0.7rem;">Sin variantes</span>
+            {% else %}
+              <span class="badge bg-info mb-1" style="font-size:0.7rem;">{{ variant_count }} variante{% if variant_count > 1 %}s{% endif %}</span>
+            {% endif %}
+
+            {# Estado de stock con badge #}
+            {% if total_stock == 0 %}
+              <span class="badge bg-danger">Sin stock</span>
+            {% elif total_stock <= p.get('stock_min', 0) %}
+              <span class="badge bg-warning text-dark">Stock bajo</span>
+            {% else %}
+              <span class="badge bg-success">En stock</span>
+            {% endif %}
+
+            <div class="mt-2">
+              <strong class="{% if total_stock==0 %}text-danger{% elif total_stock<=p.get('stock_min',0) %}text-warning{% else %}text-success{% endif %}" style="font-size:1.4rem;">
+                {{ total_stock }}
+              </strong>
+              <small class="text-muted">total</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="d-flex gap-2 mt-3 dashboard-actions">
+    <a href="{{ url_for('settings') }}" class="btn btn-outline-secondary"><i class="bi bi-gear me-1"></i>Configuración</a>
+    <a href="{{ url_for('logout') }}" class="btn btn-secondary"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a>
+  </div>
+</div>
+
+<!-- MODALES Y TOASTS (se mantienen igual) -->
+<div class="modal fade" id="modalNuevoProducto" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="POST" action="{{ url_for('create_product') }}" enctype="multipart/form-data" class="modal-content">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Nuevo producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Aviso informativo -->
+        <div class="alert alert-info py-2 mb-3" style="font-size:0.85rem;background:rgba(255,122,0,0.1);border-color:var(--orange);color:var(--text);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1" style="vertical-align:-2px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <strong>El stock y precios se gestionan por variante.</strong><br>
+          <span class="text-muted">Después de crear el producto, agrega variantes con color, unidad y stock.</span>
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-7">
+            <div class="mb-3">
+              <label class="form-label">Nombre del producto <span class="text-danger">*</span></label>
+              <input name="nombre" class="form-control" placeholder="Ej: Zapatera Pegable" required autofocus>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Categoría</label>
+                <input name="categoria" class="form-control" placeholder="Ej: Zapateras, Cables">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Stock mínimo (alerta)</label>
+                <input name="stock_min" type="number" class="form-control" min="0" value="0">
+                <div class="form-help">Alerta cuando el stock total baje de este valor</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-5 text-center">
+            <label class="form-label">Imagen</label>
+            <div class="preview-box mb-2">
+              <img id="previewNuevoProducto" src="{{ url_for('static', filename='productos/default.png') }}" alt="preview" style="width:100%;height:120px;object-fit:cover;">
+            </div>
+            <input name="imagen_file" id="imagen_file" type="file" accept="image/*" class="form-control form-control-sm">
+            <div class="form-help">png, jpg, webp — máx 5MB</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-warning">Crear producto</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEntrada" tabindex="-1"><div class="modal-dialog">
+<form method="POST" action="{{ url_for('add_stock') }}" class="modal-content">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="modal-header"><h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Agregar stock</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" name="id" id="entrada_id"><label>Cantidad</label><input type="number" name="cantidad" class="form-control" min="1" required></div>
+  <div class="modal-footer"><button class="btn btn-success">Confirmar</button></div>
+</form></div></div>
+
+<div class="modal fade" id="modalSalida" tabindex="-1"><div class="modal-dialog">
+<form method="POST" action="{{ url_for('remove_stock') }}" class="modal-content">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="modal-header"><h5 class="modal-title"><i class="bi bi-dash-circle me-2"></i>Retirar stock</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" name="id" id="salida_id"><label>Cantidad</label><input type="number" name="cantidad" class="form-control" min="1" required></div>
+  <div class="modal-footer"><button class="btn btn-danger">Confirmar</button></div>
+</form></div></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MODAL DE PRODUCTO PROFESIONAL (REFACTORIZADO)
+     - Vista completa del producto
+     - Variaciones dinámicas
+     - Control de stock sin recarga
+     - Agregar a venta
+     - Editar / Eliminar (admin)
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content product-modal-content">
+      
+      <!-- ═══════════════════════════════════════════════════════════════════
+           HEADER
+      ═══════════════════════════════════════════════════════════════════ -->
+      <div class="modal-header product-modal-header">
+        <div>
+          <h5 class="modal-title mb-0" id="productModalLabel">
+            <span id="pm-name" class="product-modal-name">Producto</span>
+          </h5>
+          <small class="text-muted" id="pm-sku">#SKU</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════════════
+           BODY: 2 COLUMNAS
+      ═══════════════════════════════════════════════════════════════════ -->
+      <div class="modal-body product-modal-body">
+        <div class="row g-4">
+          
+          <!-- ─────────────────────────────────────────────────────────────
+               COLUMNA IZQUIERDA: IMAGEN + BADGES
+          ───────────────────────────────────────────────────────────── -->
+          <div class="col-md-5">
+            <div class="product-modal-image-wrapper">
+              <img id="pm-image" src="" alt="Producto" class="product-modal-image">
+            </div>
+            
+            <!-- Badges de categoría/atributos -->
+            <div class="product-modal-badges mt-3" id="pm-badges">
+              <!-- Se llenan dinámicamente -->
+            </div>
+          </div>
+
+          <!-- ─────────────────────────────────────────────────────────────
+               COLUMNA DERECHA: INFO + ACCIONES
+          ───────────────────────────────────────────────────────────── -->
+          <div class="col-md-7">
+            
+            <!-- SECCIÓN: ESTADO DE STOCK ─────────────────────────────── -->
+            <div class="product-modal-section stock-section">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="stock-display">
+                  <span class="stock-label">Stock actual</span>
+                  <div class="stock-value-wrapper">
+                    <span id="pm-stock" class="stock-value">0</span>
+                    <span id="pm-unidad" class="stock-unit">Unidades</span>
+                  </div>
+                </div>
+                <span id="pm-stock-badge" class="badge stock-badge bg-success">En stock</span>
+              </div>
+              <div class="stock-min-info">
+                <span class="text-muted small">Stock mínimo:</span>
+                <span id="pm-stock-min" class="text-muted small">0</span>
+              </div>
+            </div>
+
+            <!-- SECCIÓN: VARIACIONES (si existen) ──────────────────────── -->
+            <div class="product-modal-section variations-section" id="pm-variations-section" style="display:none;">
+              <label class="section-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                Variación
+              </label>
+              <div id="pm-variations-container" class="variations-pills">
+                <!-- Pills de variaciones se generan dinámicamente -->
+              </div>
+            </div>
+
+            <!-- SECCIÓN: UNIDAD DE VENTA (UV) - Dependiente de variante ──── -->
+            <div class="product-modal-section uv-section" id="pm-uv-section" style="display:none;">
+              <label class="section-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+                Unidad de Venta
+              </label>
+              <div id="pm-uv-container" class="uv-pills">
+                <!-- Pills de UV se generan dinámicamente al seleccionar variante -->
+              </div>
+            </div>
+
+            <!-- SECCIÓN: CONTROL DE STOCK ─────────────────────────────── -->
+            <div class="product-modal-section control-stock-section">
+              <label class="section-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                  <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                Control de Stock
+              </label>
+              <div class="stock-control-row">
+                <div class="stock-qty-input-wrapper">
+                  <button type="button" class="qty-btn qty-minus" id="pm-qty-minus">−</button>
+                  <input type="number" id="pm-qty-stock" class="form-control stock-qty-input" min="1" value="1">
+                  <button type="button" class="qty-btn qty-plus" id="pm-qty-plus">+</button>
+                </div>
+                <div class="stock-action-btns">
+                  <button type="button" class="btn btn-stock-add" id="pm-btn-add-stock">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Entrada
+                  </button>
+                  <button type="button" class="btn btn-stock-remove" id="pm-btn-remove-stock">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Salida
+                  </button>
+                </div>
+              </div>
+              <!-- Feedback de operación -->
+              <div id="pm-stock-feedback" class="stock-feedback" style="display:none;"></div>
+            </div>
+
+            <!-- SECCIÓN: AGREGAR A VENTA ─────────────────────────────── -->
+            <div class="product-modal-section cart-section">
+              <label class="section-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                Agregar a Venta
+              </label>
+              <div class="cart-inputs-row">
+                <div class="cart-input-group">
+                  <label class="cart-input-label">Cantidad</label>
+                  <div class="cart-qty-wrapper">
+                    <button type="button" class="qty-btn qty-minus" id="pm-cart-qty-minus">−</button>
+                    <input type="number" id="pm-qty-sell" class="form-control cart-qty-input" min="1" value="1">
+                    <button type="button" class="qty-btn qty-plus" id="pm-cart-qty-plus">+</button>
+                  </div>
+                </div>
+                <div class="cart-input-group">
+                  <label class="cart-input-label">Precio unitario</label>
+                  <div class="price-input-wrapper">
+                    <span class="price-prefix">S/</span>
+                    <input type="number" id="pm-price-sell" class="form-control cart-price-input" min="0" step="0.01" placeholder="0.00">
+                  </div>
+                </div>
+              </div>
+              <div class="cart-total-preview">
+                <span class="text-muted small">Subtotal:</span>
+                <span id="pm-subtotal" class="cart-subtotal">S/ 0.00</span>
+              </div>
+              <small class="igv-note">Precio incluye IGV</small>
+              <button type="button" class="btn btn-add-to-cart w-100 anim-pulse btn-glow" id="pm-btn-add-cart">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                Agregar a venta
+              </button>
+              <!-- Feedback del carrito -->
+              <div id="pm-cart-feedback" class="cart-feedback" style="display:none;"></div>
+            </div>
+
+            <!-- SECCIÓN: AGREGAR VARIANTE (ADMIN) ────────────────────────── -->
+            {% if role in ['admin', 'China Import'] %}
+            <div class="product-modal-section variant-add-section" id="pm-variant-add-section">
+              <label class="section-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                Gestión de Variantes
+              </label>
+              
+              <!-- FORMULARIO 1: Nueva Variante (solo atributos) -->
+              <div id="pm-variant-form" class="variant-form" style="display:none;">
+                <div class="variant-form-section">
+                  <span class="variant-form-section-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Nueva Variante (Atributos)
+                  </span>
+                  <p class="text-muted small mb-2">Define los atributos de la variante (ej: color, talla). Después podrás agregar unidades de venta.</p>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <label class="form-label variant-label">Atributo</label>
+                      <input type="text" id="pm-new-variant-attr-key" class="form-control form-control-sm variant-input" placeholder="ej: color, talla">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label variant-label">Valor</label>
+                      <input type="text" id="pm-new-variant-attr-val" class="form-control form-control-sm variant-input" placeholder="ej: Rojo, XL">
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Primera UV al crear variante -->
+                <div class="variant-form-section">
+                  <span class="variant-form-section-title">Primera Unidad de Venta</span>
+                  <div class="uv-selector mb-2">
+                    <div class="btn-group w-100" role="group" id="pm-uv-group">
+                      <input type="radio" class="btn-check" name="pm-uv" id="pm-uv-unidad" value="UNIDAD" checked>
+                      <label class="btn btn-outline-warning btn-sm" for="pm-uv-unidad">UNIDAD</label>
+                      
+                      <input type="radio" class="btn-check" name="pm-uv" id="pm-uv-caja" value="CAJA">
+                      <label class="btn btn-outline-warning btn-sm" for="pm-uv-caja">CAJA</label>
+                      
+                      <input type="radio" class="btn-check" name="pm-uv" id="pm-uv-costal" value="COSTAL">
+                      <label class="btn btn-outline-warning btn-sm" for="pm-uv-costal">COSTAL</label>
+                      
+                      <input type="radio" class="btn-check" name="pm-uv" id="pm-uv-otra" value="OTRA">
+                      <label class="btn btn-outline-warning btn-sm" for="pm-uv-otra">OTRA</label>
+                    </div>
+                  </div>
+                  <div id="pm-uv-otra-wrap" style="display:none;">
+                    <input type="text" id="pm-uv-label" class="form-control form-control-sm variant-input" 
+                           placeholder="Especificar: Paquete 12, Rollo, Set, etc.">
+                  </div>
+                </div>
+                
+                <!-- Stock y Precios de la primera UV -->
+                <div class="variant-form-section">
+                  <span class="variant-form-section-title">Stock y Precios</span>
+                  <div class="row g-2">
+                    <div class="col-4">
+                      <label class="form-label variant-label">Stock</label>
+                      <input type="number" id="pm-new-variant-stock" class="form-control form-control-sm variant-input" value="0" min="0">
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label variant-label">Precio</label>
+                      <input type="number" id="pm-new-variant-price" class="form-control form-control-sm variant-input" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label variant-label">Costo</label>
+                      <input type="number" id="pm-new-variant-cost" class="form-control form-control-sm variant-input" step="0.01" placeholder="0.00">
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="d-flex gap-2 mt-3">
+                  <button type="button" class="btn btn-sm btn-success flex-grow-1" id="pm-btn-save-variant">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                    Crear Variante
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="pm-btn-cancel-variant">Cancelar</button>
+                </div>
+                <div id="pm-variant-feedback" class="mt-2" style="display:none;"></div>
+              </div>
+              
+              <!-- FORMULARIO 2: Agregar UV a Variante Existente -->
+              <div id="pm-add-uv-form" class="variant-form" style="display:none;">
+                <div class="variant-form-section">
+                  <span class="variant-form-section-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    </svg>
+                    Nueva UV para: <span id="pm-add-uv-variant-name" class="text-warning">—</span>
+                  </span>
+                  <p class="text-muted small mb-2">Agrega una unidad de venta (Caja, Costal, etc.) a la variante seleccionada.</p>
+                </div>
+                
+                <div class="variant-form-section">
+                  <span class="variant-form-section-title">Unidad de Venta</span>
+                  <div class="uv-selector mb-2">
+                    <div class="btn-group w-100" role="group" id="pm-add-uv-group">
+                      <input type="radio" class="btn-check" name="pm-add-uv" id="pm-add-uv-unidad" value="UNIDAD" checked>
+                      <label class="btn btn-outline-info btn-sm" for="pm-add-uv-unidad">UNIDAD</label>
+                      
+                      <input type="radio" class="btn-check" name="pm-add-uv" id="pm-add-uv-caja" value="CAJA">
+                      <label class="btn btn-outline-info btn-sm" for="pm-add-uv-caja">CAJA</label>
+                      
+                      <input type="radio" class="btn-check" name="pm-add-uv" id="pm-add-uv-costal" value="COSTAL">
+                      <label class="btn btn-outline-info btn-sm" for="pm-add-uv-costal">COSTAL</label>
+                      
+                      <input type="radio" class="btn-check" name="pm-add-uv" id="pm-add-uv-otra" value="OTRA">
+                      <label class="btn btn-outline-info btn-sm" for="pm-add-uv-otra">OTRA</label>
+                    </div>
+                  </div>
+                  <div id="pm-add-uv-otra-wrap" style="display:none;">
+                    <input type="text" id="pm-add-uv-label" class="form-control form-control-sm variant-input" 
+                           placeholder="Especificar: Paquete 12, Rollo, Set, etc.">
+                  </div>
+                </div>
+                
+                <div class="variant-form-section">
+                  <span class="variant-form-section-title">Stock y Precios</span>
+                  <div class="row g-2">
+                    <div class="col-4">
+                      <label class="form-label variant-label">Stock</label>
+                      <input type="number" id="pm-add-uv-stock" class="form-control form-control-sm variant-input" value="0" min="0">
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label variant-label">Precio</label>
+                      <input type="number" id="pm-add-uv-price" class="form-control form-control-sm variant-input" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label variant-label">Costo</label>
+                      <input type="number" id="pm-add-uv-cost" class="form-control form-control-sm variant-input" step="0.01" placeholder="0.00">
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="d-flex gap-2 mt-3">
+                  <button type="button" class="btn btn-sm btn-info flex-grow-1" id="pm-btn-save-uv">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                    Agregar UV
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="pm-btn-cancel-uv">Cancelar</button>
+                </div>
+                <div id="pm-add-uv-feedback" class="mt-2" style="display:none;"></div>
+              </div>
+              
+              <!-- Botones para mostrar formularios -->
+              <div id="pm-variant-buttons" class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-warning flex-grow-1" id="pm-btn-show-variant-form">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"></path>
+                  </svg>
+                  Nueva Variante
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-info flex-grow-1" id="pm-btn-show-uv-form" style="display:none;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                  </svg>
+                  + UV
+                </button>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- SECCIÓN: ACCIONES ADMIN ────────────────────────────────── -->
+            {% if role in ['admin', 'China Import'] %}
+            <div class="product-modal-section admin-section">
+              <label class="section-label text-muted">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                Acciones de administrador
+              </label>
+              <div class="admin-btns">
+                <button type="button" class="btn btn-admin-edit" id="pm-btn-edit" data-bs-toggle="modal" data-bs-target="#modalEditarProducto">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Editar producto
+                </button>
+                <button type="button" class="btn btn-admin-delete" id="pm-btn-delete">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════════════
+           FOOTER
+      ═══════════════════════════════════════════════════════════════════ -->
+      <div class="modal-footer product-modal-footer">
+        <small class="text-muted" id="pm-footer-info">ID: — | SKU: —</small>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MODAL DE EDICIÓN DE PRODUCTO
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalEditarProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <form id="edit-product-form" method="POST" action="" class="modal-content">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="modal-header">
+        <h5 class="modal-title">✏️ Editar producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nombre</label>
+            <input name="nombre" id="edit-nombre" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Categoría</label>
+            <input name="categoria" id="edit-categoria" class="form-control">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Stock total</label>
+            <input id="edit-cantidad" type="number" class="form-control" min="0" disabled readonly title="El stock se gestiona por variantes">
+            <small class="text-muted">Solo lectura (gestionar en variantes)</small>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Stock mínimo</label>
+            <input name="stock_min" id="edit-stock-min" type="number" class="form-control" min="0">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Costo</label>
+            <input name="cost" id="edit-cost" type="number" step="0.01" class="form-control" min="0">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Precio</label>
+            <input name="price" id="edit-price" type="number" step="0.01" class="form-control" min="0">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Unidad</label>
+            <select name="unidad" id="edit-unidad" class="form-select">
+              <option value="Unidades">Unidades</option>
+              <option value="Caja">Caja</option>
+              <option value="Saco">Saco</option>
+              <option value="Metro">Metro</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Color</label>
+            <input name="color" id="edit-color" class="form-control">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Tipo</label>
+            <input name="tipo" id="edit-tipo" class="form-control">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-warning">Guardar cambios</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Form oculto para eliminar producto desde modal -->
+<form id="pm-delete-form" method="POST" action="" style="display:none;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+</form>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PANEL FLOTANTE DE CARRITO (POS-style)
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="cart-panel" class="cart-panel" style="display:none;">
+  <div class="cart-panel-header">
+    <h5>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="9" cy="21" r="1"></circle>
+        <circle cx="20" cy="21" r="1"></circle>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+      </svg>
+      Carrito de venta
+    </h5>
+    <button type="button" class="btn-close btn-close-white" id="cart-panel-close" aria-label="Cerrar"></button>
+  </div>
+  <div class="cart-panel-body">
+    <div id="cart-items-list">
+      <!-- Items se renderizan aquí dinámicamente -->
+      <p class="text-muted text-center" id="cart-empty-msg">El carrito está vacío</p>
+    </div>
+  </div>
+  
+  <!-- Sección expandible: datos de cliente (colapsable) -->
+  <div class="cart-section-toggle">
+    <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="toggle-client-data" data-expanded="false">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      Datos del cliente (opcional)
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="toggle-client-icon">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+    <div id="client-data-section" style="display:none; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-top: 8px;">
+      <div class="mb-2">
+        <label class="form-label small mb-1">Nombre</label>
+        <input type="text" class="form-control form-control-sm" id="cart-client-name" placeholder="Nombre del cliente">
+      </div>
+      <div class="mb-2">
+        <label class="form-label small mb-1">Documento</label>
+        <input type="text" class="form-control form-control-sm" id="cart-client-doc" placeholder="DNI/RUC">
+      </div>
+      <div>
+        <label class="form-label small mb-1">Observaciones</label>
+        <textarea class="form-control form-control-sm" id="cart-client-obs" rows="2" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       SECCIÓN DE TIPO DE ENTREGA
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="cart-delivery-section" style="padding: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+    <div class="delivery-type-label mb-2" style="font-size: 0.8rem; color: var(--muted);">
+      📦 Tipo de entrega
+    </div>
+    
+    <!-- Selector de tipo -->
+    <div class="btn-group w-100 mb-2" role="group" id="delivery-type-selector">
+      <input type="radio" class="btn-check" name="delivery-type" id="delivery-recojo" value="RECOJO" checked>
+      <label class="btn btn-outline-secondary btn-sm" for="delivery-recojo">🏪 Recojo</label>
+      
+      <input type="radio" class="btn-check" name="delivery-type" id="delivery-delivery" value="DELIVERY">
+      <label class="btn btn-outline-secondary btn-sm" for="delivery-delivery">🛵 Delivery</label>
+      
+      <input type="radio" class="btn-check" name="delivery-type" id="delivery-provincia" value="PROVINCIA">
+      <label class="btn btn-outline-secondary btn-sm" for="delivery-provincia">🚚 Provincia</label>
+    </div>
+    
+    <!-- Campos dinámicos según tipo -->
+    <div id="delivery-fields-container">
+      
+      <!-- RECOJO: Todos opcionales -->
+      <div id="delivery-fields-recojo" class="delivery-fields" style="background: rgba(0,0,0,0.1); border-radius: 6px; padding: 10px;">
+        <div class="mb-2">
+          <input type="text" class="form-control form-control-sm" id="recojo-nombre" placeholder="Nombre cliente (opcional)">
+        </div>
+        <div class="mb-2">
+          <input type="tel" class="form-control form-control-sm" id="recojo-telefono" placeholder="Teléfono (opcional)">
+        </div>
+        <div>
+          <input type="text" class="form-control form-control-sm" id="recojo-observacion" placeholder="Observación (opcional)">
+        </div>
+      </div>
+      
+      <!-- DELIVERY: Dirección y teléfono obligatorios -->
+      <div id="delivery-fields-delivery" class="delivery-fields" style="display:none; background: rgba(0,0,0,0.1); border-radius: 6px; padding: 10px;">
+        <div class="mb-2">
+          <input type="text" class="form-control form-control-sm" id="delivery-direccion" placeholder="Dirección *" required>
+          <div class="invalid-feedback">Ingresa la dirección</div>
+        </div>
+        <div class="mb-2">
+          <input type="tel" class="form-control form-control-sm" id="delivery-telefono" placeholder="Teléfono *" required>
+          <div class="invalid-feedback">Ingresa el teléfono</div>
+        </div>
+        <div class="mb-2">
+          <input type="text" class="form-control form-control-sm" id="delivery-referencia" placeholder="Referencia (opcional)">
+        </div>
+        <div>
+          <input type="text" class="form-control form-control-sm" id="delivery-observacion" placeholder="Observación (opcional)">
+        </div>
+      </div>
+      
+      <!-- PROVINCIA: Varios campos obligatorios -->
+      <div id="delivery-fields-provincia" class="delivery-fields" style="display:none; background: rgba(0,0,0,0.1); border-radius: 6px; padding: 10px;">
+        <div class="mb-2">
+          <input type="text" class="form-control form-control-sm" id="provincia-agencia" placeholder="Agencia de envío *" required>
+          <div class="invalid-feedback">Ingresa la agencia</div>
+        </div>
+        <div class="mb-2">
+          <input type="text" class="form-control form-control-sm" id="provincia-ciudad" placeholder="Ciudad / Departamento *" required>
+          <div class="invalid-feedback">Ingresa ciudad/departamento</div>
+        </div>
+        <div class="mb-2">
+          <input type="text" class="form-control form-control-sm" id="provincia-nombre" placeholder="Nombre destinatario *" required>
+          <div class="invalid-feedback">Ingresa nombre del destinatario</div>
+        </div>
+        <div class="mb-2">
+          <input type="text" class="form-control form-control-sm" id="provincia-dni" placeholder="DNI destinatario *" required>
+          <div class="invalid-feedback">Ingresa DNI del destinatario</div>
+        </div>
+        <div class="mb-2">
+          <input type="tel" class="form-control form-control-sm" id="provincia-telefono" placeholder="Teléfono destinatario *" required>
+          <div class="invalid-feedback">Ingresa teléfono</div>
+        </div>
+        <div>
+          <input type="text" class="form-control form-control-sm" id="provincia-observacion" placeholder="Observación (opcional)">
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  
+  <!-- Sección de pago -->
+  <div class="cart-payment-section">
+    <div class="cart-total mb-2">
+      <span>Total:</span>
+      <strong id="cart-total-amount">S/ 0.00</strong>
+    </div>
+    
+    <div class="payment-input-row">
+      <div class="payment-amount-wrap">
+        <label class="form-label small mb-1">Pago inicial</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text">S/</span>
+          <input type="number" class="form-control" id="cart-payment-amount" min="0" step="0.01" placeholder="0.00">
+          <button type="button" class="btn btn-outline-warning btn-sm" id="cart-payment-fullpay" title="Pagar todo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="payment-method-wrap">
+        <label class="form-label small mb-1">Método</label>
+        <select class="form-select form-select-sm" id="cart-payment-method">
+          <option value="EFECTIVO">Efectivo</option>
+          <option value="TRANSFERENCIA">Transferencia</option>
+          <option value="TARJETA">Tarjeta</option>
+          <option value="YAPE">Yape</option>
+          <option value="PLIN">Plin</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="payment-status-row mt-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="small">Estado resultante:</span>
+        <span id="cart-result-status" class="badge bg-warning text-dark">POR PAGAR</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-1">
+        <span class="small text-muted">Pendiente:</span>
+        <span id="cart-pending-amount" class="small">S/ 0.00</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="cart-panel-footer">
+    <div class="cart-actions">
+      <button type="button" class="btn btn-outline-danger btn-sm" id="cart-clear-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        Vaciar
+      </button>
+      <button type="button" class="btn btn-success" id="cart-confirm-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        Confirmar venta
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Botón flotante para abrir carrito -->
+<button type="button" class="cart-fab" id="cart-fab" title="Ver carrito">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="9" cy="21" r="1"></circle>
+    <circle cx="20" cy="21" r="1"></circle>
+    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+  </svg>
+  <span class="cart-fab-badge" id="cart-fab-badge">0</span>
+</button>
+
+<!-- contenedor de toasts bottom-center -->
+<div id="toastContainer" class="toast-container-bottom" aria-live="polite" aria-atomic="true">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      {# elegir icono SVG según tipo pero mantener paleta naranja/negro #}
+      {% if cat == 'success' %}
+        {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' %}
+        {% set title = 'Éxito' %}
+      {% elif cat == 'warning' %}
+        {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a1.99 1.99 0 0 0 1.71 3h16.94a1.99 1.99 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="0" fill="currentColor"/></svg>' %}
+        {% set title = 'Atención' %}
+      {% elif cat == 'danger' %}
+        {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.36 5.64L5.64 18.36M5.64 5.64l12.72 12.72" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' %}
+        {% set title = 'Error' %}
+      {% else %}
+        {% set svg_path = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/></svg>' %}
+        {% set title = 'Notificación' %}
+      {% endif %}
+
+      <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3500">
+        <div class="toast-header custom" style="color:var(--orange);">
+          <span style="color:var(--orange);display:flex;align-items:center;">
+            {{ svg_path | safe }}
+          </span>
+          <strong class="me-auto toast-title">{{ title }}</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+        <div class="toast-body">
+          {{ msg }}
+        </div>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIGURACIÓN GLOBAL
+// ═══════════════════════════════════════════════════════════════════════════
+const CSRF_TOKEN = '{{ csrf_token }}';
+const API_ENDPOINTS = {
+  addStock: '/api/stock/add',
+  removeStock: '/api/stock/remove',
+  getProduct: '/api/product/',
+  validateCart: '/api/cart/validate',
+  carritoAgregar: '/api/carrito/agregar',
+  carritoVer: '/api/carrito/ver',
+  carritoLimpiar: '/api/carrito/limpiar',
+  carritoEliminar: '/api/carrito/eliminar',
+  carritoConfirmar: '/api/carrito/confirmar'
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FUNCIONES AUXILIARES PARA MODALES DE STOCK LEGACY
+// ═══════════════════════════════════════════════════════════════════════════
+function setProducto(id, tipo) { 
+  if (tipo === 'add') document.getElementById('entrada_id').value = id; 
+  else document.getElementById('salida_id').value = id; 
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SISTEMA DE NOTIFICACIONES (TOASTS)
+// ═══════════════════════════════════════════════════════════════════════════
+const ToastManager = {
+  container: null,
+  
+  init() {
+    this.container = document.getElementById('toastContainer');
+  },
+  
+  show(message, type = 'success', duration = 3000) {
+    if (!this.container) return;
+    
+    const icons = {
+      success: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>',
+      error: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      warning: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+      info: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    };
+    
+    const colors = {
+      success: '#22c55e',
+      error: '#ef4444',
+      warning: '#f59e0b',
+      info: '#3b82f6'
+    };
+    
+    const toastHtml = `
+      <div class="toast align-items-center border-0" role="alert" data-bs-delay="${duration}" style="background:var(--card-bg);border-left:3px solid ${colors[type]} !important;">
+        <div class="d-flex">
+          <div class="toast-body d-flex align-items-center gap-2">
+            <span style="color:${colors[type]}">${icons[type]}</span>
+            <span>${message}</span>
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>`;
+    
+    this.container.insertAdjacentHTML('beforeend', toastHtml);
+    const toastEl = this.container.lastElementChild;
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+  },
+  
+  success(msg) { this.show(msg, 'success'); },
+  error(msg) { this.show(msg, 'error', 5000); },
+  warning(msg) { this.show(msg, 'warning', 4000); },
+  info(msg) { this.show(msg, 'info'); }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CARRITO LOCAL (para agregar productos a venta desde dashboard)
+// Soporta multi-variantes: items con mismo pid pero diferente variant_id son separados
+// ═══════════════════════════════════════════════════════════════════════════
+const dashboardCart = {
+  items: [],
+  
+  // Agregar sin variante (legacy support)
+  add(pid, nombre, qty, price) {
+    return this.addWithVariant(pid, nombre, qty, price, null, {});
+  },
+  
+  // Agregar con soporte de variantes
+  addWithVariant(pid, nombre, qty, price, variantId, variantAttrs) {
+    // Buscar item con mismo pid Y mismo variant_id
+    const existing = this.items.find(i => i.pid === pid && i.variant_id === variantId);
+    if (existing) {
+      existing.qty += qty;
+      existing.price = price;
+    } else {
+      this.items.push({ 
+        pid, 
+        nombre, 
+        qty, 
+        price,
+        variant_id: variantId || null,
+        variant_attributes: variantAttrs || {}
+      });
+    }
+    this.save();
+    return true;
+  },
+  
+  // Remover item específico (por pid + variant_id)
+  remove(pid, variantId = null) {
+    this.items = this.items.filter(i => !(i.pid === pid && i.variant_id === variantId));
+    this.save();
+  },
+  
+  // Remover por índice
+  removeByIndex(idx) {
+    this.items.splice(idx, 1);
+    this.save();
+  },
+  
+  clear() {
+    this.items = [];
+    sessionStorage.removeItem('dashboardCart');
+  },
+  
+  save() {
+    sessionStorage.setItem('dashboardCart', JSON.stringify(this.items));
+  },
+  
+  load() {
+    try {
+      const saved = sessionStorage.getItem('dashboardCart');
+      if (saved) this.items = JSON.parse(saved);
+    } catch (e) {
+      this.items = [];
+    }
+  },
+  
+  getTotal() {
+    return this.items.reduce((sum, i) => sum + (i.qty * i.price), 0);
+  },
+  
+  getCount() {
+    return this.items.reduce((sum, i) => sum + i.qty, 0);
+  },
+  
+  // Obtener descripción de item (incluyendo variante)
+  getItemDescription(item) {
+    let desc = item.nombre;
+    if (item.variant_attributes && Object.keys(item.variant_attributes).length > 0) {
+      desc += ` (${Object.values(item.variant_attributes).join(' / ')})`;
+    }
+    return desc;
+  }
+};
+dashboardCart.load();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// API HELPER - Llamadas fetch con manejo de errores
+// ═══════════════════════════════════════════════════════════════════════════
+async function apiCall(url, method = 'GET', data = null) {
+  const options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': CSRF_TOKEN
+    }
+  };
+  
+  if (data && method !== 'GET') {
+    options.body = JSON.stringify(data);
+  }
+  
+  try {
+    const response = await fetch(url, options);
+    const json = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(json.error || 'Error en la operación');
+    }
+    
+    return json;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODAL DE PRODUCTO - LÓGICA PRINCIPAL
+// ═══════════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  ToastManager.init();
+  
+  // Datos del producto actualmente abierto en el modal
+  let currentProduct = null;
+  
+  // Referencias al modal
+  const productModal = document.getElementById('productModal');
+  if (!productModal) return;
+  
+  // Elementos del modal
+  const elements = {
+    name: document.getElementById('pm-name'),
+    sku: document.getElementById('pm-sku'),
+    image: document.getElementById('pm-image'),
+    stock: document.getElementById('pm-stock'),
+    stockBadge: document.getElementById('pm-stock-badge'),
+    stockMin: document.getElementById('pm-stock-min'),
+    unidad: document.getElementById('pm-unidad'),
+    badges: document.getElementById('pm-badges'),
+    qtyStock: document.getElementById('pm-qty-stock'),
+    qtySell: document.getElementById('pm-qty-sell'),
+    priceSell: document.getElementById('pm-price-sell'),
+    subtotal: document.getElementById('pm-subtotal'),
+    stockFeedback: document.getElementById('pm-stock-feedback'),
+    cartFeedback: document.getElementById('pm-cart-feedback'),
+    footerInfo: document.getElementById('pm-footer-info'),
+    variationsSection: document.getElementById('pm-variations-section'),
+    variationsContainer: document.getElementById('pm-variations-container'),
+    uvSection: document.getElementById('pm-uv-section'),
+    uvContainer: document.getElementById('pm-uv-container')
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FUNCIÓN DE PLURALIZACIÓN DE UNIDAD DE VENTA (UV)
+  // ═══════════════════════════════════════════════════════════════════════════
+  /**
+   * Formatea la unidad de venta con pluralización correcta
+   * @param {number} quantity - Cantidad para determinar singular/plural
+   * @param {string} unit - Código de unidad: UNIDAD, CAJA, COSTAL, OTRA
+   * @param {string} unitLabel - Texto personalizado (solo si unit=OTRA)
+   * @returns {string} Texto formateado (ej: "Cajas", "Unidad", "Costales")
+   */
+  function formatUnit(quantity, unit, unitLabel) {
+    const qty = Math.abs(quantity) || 0;
+    const isSingular = qty === 1;
+    
+    // Si es OTRA con label personalizado
+    if (unit === 'OTRA' && unitLabel) {
+      // Si termina en 's', 'es', 'x', 'z' → no cambiar en plural
+      const lower = unitLabel.toLowerCase();
+      if (isSingular) return unitLabel;
+      if (lower.endsWith('s') || lower.endsWith('x') || lower.endsWith('z')) return unitLabel;
+      return unitLabel + 's';
+    }
+    
+    // Mapeo de unidades estándar
+    const unitMap = {
+      'UNIDAD': { singular: 'Unidad', plural: 'Unidades' },
+      'CAJA': { singular: 'Caja', plural: 'Cajas' },
+      'COSTAL': { singular: 'Costal', plural: 'Costales' }
+    };
+    
+    const mapped = unitMap[unit?.toUpperCase()] || unitMap['UNIDAD'];
+    return isSingular ? mapped.singular : mapped.plural;
+  }
+  
+  /**
+   * Obtiene la UV formateada de una variante
+   * @param {number} quantity - Cantidad
+   * @param {object} variant - Objeto variante con unit y unit_label
+   * @returns {string} UV formateada
+   */
+  function getVariantUnitDisplay(quantity, variant) {
+    if (!variant) return formatUnit(quantity, 'UNIDAD', null);
+    return formatUnit(quantity, variant.unit || 'UNIDAD', variant.unit_label);
+  }
+
+  /**
+   * ═══════════════════════════════════════════════════════════════════════════
+   * FUNCIÓN CENTRALIZADA: Obtener UV correcta según contexto
+   * ═══════════════════════════════════════════════════════════════════════════
+   * Regla:
+   * 1. Si hay variante seleccionada → usar UV de la variante
+   * 2. Si producto tiene variantes pero ninguna seleccionada → UV de primera variante
+   * 3. Solo si NO hay variantes → usar product.unidad (legacy)
+   * 
+   * @param {object} product - Objeto producto con variants[] y unidad
+   * @param {object} activeVariant - Variante actualmente seleccionada (opcional)
+   * @param {number} quantity - Cantidad para pluralización (default: 1)
+   * @returns {string} UV formateada para mostrar
+   */
+  function getDisplayUnit(product, uvEntry, quantity = 1) {
+    // Prioridad 1: UV específica seleccionada (nuevo sistema multi-UV)
+    if (uvEntry && uvEntry.uv) {
+      return formatUnit(quantity, uvEntry.uv, uvEntry.label);
+    }
+    
+    // Prioridad 2: Primera UV de la primera variante
+    if (product.variants && product.variants.length > 0) {
+      const firstVariant = product.variants[0];
+      const units = firstVariant.units || [];
+      if (units.length > 0) {
+        return formatUnit(quantity, units[0].uv || 'UNIDAD', units[0].label);
+      }
+    }
+    
+    // Prioridad 3: UV legacy del producto (fallback)
+    const legacyMap = {
+      'unidades': 'UNIDAD',
+      'unidad': 'UNIDAD',
+      'cajas': 'CAJA',
+      'caja': 'CAJA',
+      'costales': 'COSTAL',
+      'costal': 'COSTAL'
+    };
+    const legacyUnit = (product.unidad || 'Unidades').toLowerCase();
+    const mappedUnit = legacyMap[legacyUnit] || 'UNIDAD';
+    return formatUnit(quantity, mappedUnit, null);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FUNCIONES DE ACTUALIZACIÓN DE UI
+  // ─────────────────────────────────────────────────────────────────────────
+  
+  function updateStockDisplay(stock, stockMin) {
+    elements.stock.textContent = stock;
+    elements.stockMin.textContent = stockMin;
+    
+    // Actualizar badge y colores
+    if (stock === 0) {
+      elements.stockBadge.className = 'badge stock-badge bg-danger';
+      elements.stockBadge.textContent = 'Sin stock';
+      elements.stock.className = 'stock-value text-danger';
+    } else if (stock <= stockMin) {
+      elements.stockBadge.className = 'badge stock-badge bg-warning text-dark';
+      elements.stockBadge.textContent = 'Stock bajo';
+      elements.stock.className = 'stock-value text-warning';
+    } else {
+      elements.stockBadge.className = 'badge stock-badge bg-success';
+      elements.stockBadge.textContent = 'En stock';
+      elements.stock.className = 'stock-value text-success';
+    }
+    
+    // Actualizar también la tarjeta en el grid
+    updateCardInGrid(currentProduct.id, stock, stockMin);
+  }
+  
+  function updateCardInGrid(pid, stock, stockMin) {
+    const card = document.querySelector(`[data-id="${pid}"]`);
+    if (!card) return;
+    
+    // Actualizar data attributes
+    card.dataset.stock = stock;
+    
+    // Actualizar texto del stock en la tarjeta
+    const stockText = card.querySelector('.card-body strong');
+    if (stockText) {
+      stockText.textContent = stock;
+      stockText.className = '';
+      if (stock === 0) {
+        stockText.classList.add('text-danger');
+      } else if (stock <= stockMin) {
+        stockText.classList.add('text-warning');
+      } else {
+        stockText.classList.add('text-success');
+      }
+    }
+    
+    // Actualizar badge de stock en la tarjeta (es el segundo badge, después del de variantes)
+    const badges = card.querySelectorAll('.badge');
+    // El badge de stock es el que no tiene el texto de variantes
+    const stockBadge = Array.from(badges).find(b => 
+      !b.textContent.includes('variante') && 
+      (b.textContent.includes('stock') || b.textContent.includes('Stock') || 
+       b.classList.contains('bg-success') || b.classList.contains('bg-danger') || 
+       (b.classList.contains('bg-warning') && !b.textContent.includes('variante')))
+    );
+    if (stockBadge) {
+      if (stock === 0) {
+        stockBadge.className = 'badge bg-danger';
+        stockBadge.textContent = 'Sin stock';
+      } else if (stock <= stockMin) {
+        stockBadge.className = 'badge bg-warning text-dark';
+        stockBadge.textContent = 'Stock bajo';
+      } else {
+        stockBadge.className = 'badge bg-success';
+        stockBadge.textContent = 'En stock';
+      }
+    }
+  }
+  
+  function updateSubtotal() {
+    const qty = parseInt(elements.qtySell.value) || 0;
+    const price = parseFloat(elements.priceSell.value) || 0;
+    const subtotal = qty * price;
+    elements.subtotal.textContent = `S/ ${subtotal.toFixed(2)}`;
+  }
+  
+  function showFeedback(element, message, type = 'success') {
+    const colors = {
+      success: '#22c55e',
+      error: '#ef4444',
+      warning: '#f59e0b'
+    };
+    const icons = {
+      success: '<i class="bi bi-check-circle"></i>',
+      error: '<i class="bi bi-x-circle"></i>',
+      warning: '<i class="bi bi-exclamation-triangle"></i>'
+    };
+    
+    element.innerHTML = `
+      <div class="anim-fade-in-up" style="display:flex;align-items:center;gap:6px;color:${colors[type]};font-size:0.85rem;margin-top:8px;">
+        ${icons[type]} ${message}
+      </div>`;
+    element.style.display = 'block';
+    
+    // Agregar shake sutil si es error
+    if (type === 'error') {
+      element.classList.add('anim-shake-soft');
+      setTimeout(() => element.classList.remove('anim-shake-soft'), 200);
+    }
+    
+    setTimeout(() => {
+      element.style.display = 'none';
+    }, 3000);
+  }
+  
+  function generateBadges(product, activeVariant = null) {
+    let html = '';
+    
+    if (product.categoria) {
+      html += `<span class="badge badge-attr badge-categoria">${product.categoria}</span>`;
+    }
+    
+    // Solo mostrar color si no hay variantes múltiples
+    if (product.color && !product.has_variants) {
+      const isHex = /^#[0-9A-Fa-f]{6}$/.test(product.color);
+      const bgColor = isHex ? product.color : product.color;
+      html += `<span class="badge badge-attr badge-color" style="background:${bgColor};">${product.color}</span>`;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════
+    // UV: Badge se actualiza dinámicamente al seleccionar UV
+    // Se inicializa vacío y se actualiza en updateUVSelection()
+    // ═══════════════════════════════════════════════════════════════════
+    html += `<span class="badge badge-attr badge-unidad" id="pm-badge-uv">—</span>`;
+    
+    return html;
+  }
+  
+  // Variables para rastrear variante y UV seleccionadas
+  let selectedVariant = null;
+  let selectedUV = null;  // UV seleccionada dentro de la variante
+  
+  function generateVariations(product) {
+    // SIEMPRE mostrar variantes si el producto las tiene
+    if (product.variants && product.variants.length > 0) {
+      elements.variationsSection.style.display = 'block';
+      
+      let html = '';
+      product.variants.forEach((variant, idx) => {
+        const attrs = variant.attributes || {};
+        const hasAttrs = Object.keys(attrs).length > 0;
+        // SOLO mostrar valores de atributos, SIN stock ni UV
+        const attrText = hasAttrs ? Object.entries(attrs).map(([k, v]) => v).join(' / ') : 'Estándar';
+        
+        // Calcular si tiene stock en alguna UV
+        const units = variant.units || [];
+        let totalAvailable = 0;
+        units.forEach(u => {
+          totalAvailable += (u.stock || 0) - (u.reserved || 0);
+        });
+        const isOutOfStock = totalAvailable <= 0;
+        
+        const activeClass = idx === 0 ? 'active' : '';
+        const disabledClass = isOutOfStock ? 'disabled' : '';
+        
+        // Indicador visual de color si existe
+        const colorAttr = Object.entries(attrs).find(([k]) => k.toLowerCase() === 'color');
+        const colorIndicator = colorAttr ? 
+          `<span class="variation-color" style="background:${colorAttr[1]};"></span>` : '';
+        
+        // VARIANTE: Solo muestra el nombre del atributo, nada más
+        html += `
+          <button type="button" 
+                  class="variation-pill ${activeClass} ${disabledClass}" 
+                  data-variant-id="${variant.variant_id}"
+                  data-variant-attrs='${JSON.stringify(attrs)}'
+                  data-variant-units='${JSON.stringify(units)}'
+                  ${isOutOfStock ? 'disabled' : ''}>
+            ${colorIndicator}
+            ${attrText}
+            ${isOutOfStock ? '<span class="badge bg-danger ms-2" style="font-size:0.65rem">✗</span>' : ''}
+          </button>`;
+      });
+      
+      elements.variationsContainer.innerHTML = html;
+      
+      // Auto-seleccionar: primera variante con stock, o la primera si ninguna tiene
+      const firstAvailable = product.variants.find(v => {
+        const units = v.units || [];
+        return units.some(u => (u.stock || 0) - (u.reserved || 0) > 0);
+      });
+      selectedVariant = firstAvailable || product.variants[0];
+      updateVariantSelection(selectedVariant);
+      
+      // Bind click events
+      setTimeout(bindVariationPillEvents, 50);
+    } else {
+      // No hay variantes - ocultar secciones
+      elements.variationsSection.style.display = 'none';
+      elements.uvSection.style.display = 'none';
+      selectedVariant = null;
+      selectedUV = null;
+    }
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MULTI-UV: Generar pills de Unidades de Venta para la variante seleccionada
+  // ═══════════════════════════════════════════════════════════════════════════
+  function generateUVPills(variant) {
+    const units = variant.units || [];
+    
+    if (units.length === 0) {
+      elements.uvSection.style.display = 'none';
+      selectedUV = null;
+      return;
+    }
+    
+    // Si solo hay una UV, seleccionarla automáticamente SIN mostrar selector
+    if (units.length === 1) {
+      elements.uvSection.style.display = 'none';
+      selectedUV = units[0];
+      updateUVSelection(selectedUV);
+      return;
+    }
+    
+    // Múltiples UV - mostrar selector
+    elements.uvSection.style.display = 'block';
+    
+    let html = '';
+    units.forEach((uv, idx) => {
+      const available = (uv.stock || 0) - (uv.reserved || 0);
+      const isOutOfStock = available <= 0;
+      const activeClass = idx === 0 ? 'active' : '';
+      const disabledClass = isOutOfStock ? 'disabled' : '';
+      
+      // Nombre de la UV en singular (Unidad, Caja, Costal, o label personalizado)
+      const uvName = uv.uv === 'OTRA' && uv.label ? uv.label : formatUnit(1, uv.uv);
+      
+      // Formato: "Unidad (3)" o "Sin stock"
+      html += `
+        <button type="button" 
+                class="uv-pill ${activeClass} ${disabledClass}" 
+                data-uv="${uv.uv}"
+                data-uv-label="${uv.label || ''}"
+                data-uv-stock="${uv.stock || 0}"
+                data-uv-reserved="${uv.reserved || 0}"
+                data-uv-available="${available}"
+                data-uv-price="${uv.price || 0}"
+                data-uv-cost="${uv.cost || 0}"
+                ${isOutOfStock ? 'disabled' : ''}>
+          <span class="uv-pill-name">${uvName}</span>
+          <span class="uv-pill-stock">${isOutOfStock ? '✗' : `(${available})`}</span>
+        </button>`;
+    });
+    
+    elements.uvContainer.innerHTML = html;
+    
+    // Auto-seleccionar: primera UV con stock
+    const firstAvailable = units.find(u => (u.stock || 0) - (u.reserved || 0) > 0);
+    selectedUV = firstAvailable || units[0];
+    updateUVSelection(selectedUV);
+    
+    // Bind click events para UV pills
+    setTimeout(bindUVPillEvents, 50);
+  }
+  
+  function bindUVPillEvents() {
+    document.querySelectorAll('.uv-pill:not(.disabled)').forEach(pill => {
+      pill.addEventListener('click', function() {
+        // Remover active de todas
+        document.querySelectorAll('.uv-pill').forEach(p => p.classList.remove('active'));
+        // Agregar active a la seleccionada
+        this.classList.add('active');
+        
+        // Actualizar UV seleccionada
+        const uvData = {
+          uv: this.dataset.uv,
+          label: this.dataset.uvLabel || null,
+          stock: parseInt(this.dataset.uvStock) || 0,
+          reserved: parseInt(this.dataset.uvReserved) || 0,
+          available: parseInt(this.dataset.uvAvailable) || 0,
+          price: parseFloat(this.dataset.uvPrice) || 0,
+          cost: parseFloat(this.dataset.uvCost) || 0
+        };
+        selectedUV = uvData;
+        updateUVSelection(uvData);
+      });
+    });
+  }
+  
+  function updateUVSelection(uv) {
+    if (!uv) return;
+    
+    const available = uv.available || ((uv.stock || 0) - (uv.reserved || 0));
+    
+    // Actualizar stock display con stock de esta UV
+    elements.stock.textContent = available;
+    
+    // Actualizar unidad de venta display
+    const uvDisplay = uv.uv === 'OTRA' && uv.label ? uv.label : formatUnit(available, uv.uv);
+    elements.unidad.textContent = uvDisplay;
+    
+    // Badge UV
+    const badgeUV = document.getElementById('pm-badge-uv');
+    if (badgeUV) {
+      const uvSingular = uv.uv === 'OTRA' && uv.label ? uv.label : formatUnit(1, uv.uv);
+      badgeUV.textContent = uvSingular;
+    }
+    
+    // Actualizar estado visual del stock
+    const stockMin = currentProduct.stockMin || 0;
+    if (available === 0) {
+      elements.stockBadge.className = 'badge stock-badge bg-danger';
+      elements.stockBadge.textContent = 'Sin stock';
+      elements.stock.className = 'stock-value text-danger';
+    } else if (available <= stockMin) {
+      elements.stockBadge.className = 'badge stock-badge bg-warning text-dark';
+      elements.stockBadge.textContent = 'Stock bajo';
+      elements.stock.className = 'stock-value text-warning';
+    } else {
+      elements.stockBadge.className = 'badge stock-badge bg-success';
+      elements.stockBadge.textContent = 'En stock';
+      elements.stock.className = 'stock-value text-success';
+    }
+    
+    // Actualizar precio con el precio de esta UV
+    if (uv.price) {
+      elements.priceSell.value = parseFloat(uv.price).toFixed(2);
+      updateSubtotal();
+    }
+    
+    // Guardar UV actual para uso en formularios
+    currentProduct.currentUV = uv.uv;
+    currentProduct.currentUVLabel = uv.label;
+    currentProduct.currentUVPrice = uv.price || 0;
+    currentProduct.availableStock = available;
+  }
+  
+  function updateVariantSelection(variant) {
+    if (!variant) return;
+    
+    // Generar pills de UV para esta variante
+    generateUVPills(variant);
+    
+    // Si no hay UV (no debería pasar), mostrar stock total de variante
+    const units = variant.units || [];
+    if (units.length === 0) {
+      // Fallback: sin UV
+      const available = variant.available || (variant.stock || 0) - (variant.reserved || 0);
+      elements.stock.textContent = available;
+    }
+    
+    // Guardar referencia
+    currentProduct.selectedVariant = variant;
+    
+    // Mostrar botón "+ UV" cuando hay variante seleccionada (Admin)
+    const showUvBtn = document.getElementById('pm-btn-show-uv-form');
+    if (showUvBtn) {
+      showUvBtn.style.display = 'inline-flex';
+    }
+  }
+  
+  function bindVariationPillEvents() {
+    document.querySelectorAll('.variation-pill:not(.disabled)').forEach(pill => {
+      pill.addEventListener('click', function() {
+        // Remover active de todas
+        document.querySelectorAll('.variation-pill').forEach(p => p.classList.remove('active'));
+        // Agregar active a la seleccionada
+        this.classList.add('active');
+        
+        // Actualizar variante seleccionada
+        const variantId = this.dataset.variantId;
+        const variant = currentProduct.variants?.find(v => v.variant_id === variantId);
+        if (variant) {
+          selectedVariant = variant;
+          updateVariantSelection(variant);
+        }
+      });
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // EVENTO: Al abrir el modal - Carga datos actualizados del backend
+  // ─────────────────────────────────────────────────────────────────────────
+  productModal.addEventListener('show.bs.modal', async function(event) {
+    const card = event.relatedTarget;
+    if (!card) return;
+
+    const productId = parseInt(card.dataset.id);
+    
+    // Datos iniciales de la tarjeta
+    currentProduct = {
+      id: productId,
+      name: card.dataset.name,
+      sku: card.dataset.sku,
+      stock: parseInt(card.dataset.stock) || 0,
+      stockMin: parseInt(card.dataset.stockMin) || 0,
+      image: card.dataset.image,
+      categoria: card.dataset.categoria || '',
+      color: card.dataset.color || '',
+      unidad: card.dataset.unidad || 'Unidades',
+      cost: parseFloat(card.dataset.cost) || 0,
+      price: parseFloat(card.dataset.price) || 0,
+      variants: [],
+      has_variants: false
+    };
+
+    // Poblar el modal con datos iniciales
+    elements.name.textContent = currentProduct.name;
+    elements.sku.textContent = `#${currentProduct.sku}`;
+    elements.image.src = currentProduct.image;
+    elements.image.alt = currentProduct.name;
+    // UV se actualizará cuando se carguen las variantes (updateVariantSelection)
+    // Por ahora mostrar la unidad base como fallback
+    elements.unidad.textContent = currentProduct.unidad;
+    
+    // Estado de stock inicial
+    updateStockDisplay(currentProduct.stock, currentProduct.stockMin);
+    
+    // Badges
+    elements.badges.innerHTML = generateBadges(currentProduct);
+    
+    // Pre-llenar precio
+    if (currentProduct.price > 0) {
+      elements.priceSell.value = currentProduct.price.toFixed(2);
+    } else {
+      elements.priceSell.value = '';
+    }
+    
+    // Resetear campos
+    elements.qtyStock.value = 1;
+    elements.qtySell.value = 1;
+    updateSubtotal();
+    
+    // Footer
+    elements.footerInfo.textContent = `ID: ${currentProduct.id} | SKU: ${currentProduct.sku}`;
+    
+    // Ocultar feedbacks
+    elements.stockFeedback.style.display = 'none';
+    elements.cartFeedback.style.display = 'none';
+    
+    // Reset selected variant
+    selectedVariant = null;
+    elements.variationsSection.style.display = 'none';
+    
+    // ─────────────────────────────────────────────────────────────────────
+    // Cargar datos completos del producto incluyendo variantes
+    // ─────────────────────────────────────────────────────────────────────
+    try {
+      const response = await fetch(`/api/product/${productId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.product) {
+          const prod = data.product;
+          
+          // Actualizar datos del producto - usar total_stock calculado dinámicamente
+          currentProduct.stock = prod.total_stock || prod.cantidad || 0;
+          currentProduct.available = prod.available || 0;
+          currentProduct.variants = prod.variants || [];
+          currentProduct.has_variants = prod.has_variants || false;
+          
+          // Regenerar badges y variaciones con datos actualizados
+          elements.badges.innerHTML = generateBadges(currentProduct);
+          generateVariations(currentProduct);
+          
+          // Actualizar stock display si no hay variantes seleccionadas
+          if (!selectedVariant) {
+            updateStockDisplay(currentProduct.available || currentProduct.stock, currentProduct.stockMin);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('No se pudieron cargar variantes:', e);
+      // Fallback: usar variaciones basadas en color si existe
+      generateVariations(currentProduct);
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CONTROLES DE CANTIDAD (+/-)
+  // ─────────────────────────────────────────────────────────────────────────
+  document.getElementById('pm-qty-minus')?.addEventListener('click', function() {
+    const input = elements.qtyStock;
+    const val = parseInt(input.value) || 1;
+    if (val > 1) input.value = val - 1;
+  });
+  
+  document.getElementById('pm-qty-plus')?.addEventListener('click', function() {
+    const input = elements.qtyStock;
+    const val = parseInt(input.value) || 1;
+    input.value = val + 1;
+  });
+  
+  document.getElementById('pm-cart-qty-minus')?.addEventListener('click', function() {
+    const input = elements.qtySell;
+    const val = parseInt(input.value) || 1;
+    if (val > 1) input.value = val - 1;
+    updateSubtotal();
+  });
+  
+  document.getElementById('pm-cart-qty-plus')?.addEventListener('click', function() {
+    const input = elements.qtySell;
+    const val = parseInt(input.value) || 1;
+    if (val < currentProduct.stock) {
+      input.value = val + 1;
+    }
+    updateSubtotal();
+  });
+  
+  // Actualizar subtotal cuando cambian los inputs
+  elements.qtySell?.addEventListener('input', updateSubtotal);
+  elements.priceSell?.addEventListener('input', updateSubtotal);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOTÓN: Agregar stock (AJAX) - AHORA POR VARIANTE + UV
+  // ─────────────────────────────────────────────────────────────────────────
+  document.getElementById('pm-btn-add-stock')?.addEventListener('click', async function() {
+    const qty = parseInt(elements.qtyStock.value) || 0;
+    if (qty <= 0) {
+      showFeedback(elements.stockFeedback, 'Cantidad debe ser mayor a 0', 'error');
+      return;
+    }
+    
+    // OBLIGATORIO: debe haber una variante seleccionada
+    if (currentProduct.has_variants && !selectedVariant) {
+      showFeedback(elements.stockFeedback, 'Seleccione una variante primero', 'error');
+      return;
+    }
+    
+    // MULTI-UV: Debe haber una UV seleccionada
+    if (!selectedUV) {
+      showFeedback(elements.stockFeedback, 'Seleccione una unidad de venta primero', 'error');
+      return;
+    }
+    
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    try {
+      // Usar endpoint de variante + UV
+      const variantId = selectedVariant.variant_id;
+      const response = await fetch(`/api/product/${currentProduct.id}/variant/${variantId}/stock`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify({
+          action: 'add',
+          cantidad: qty,
+          uv: selectedUV.uv
+        })
+      });
+      
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Error al agregar stock');
+      }
+      
+      // Actualizar la UV localmente
+      if (result.variant) {
+        selectedUV.stock = result.variant.stock;
+        selectedUV.available = result.variant.available;
+        updateUVSelection(selectedUV);
+      }
+      
+      // Actualizar stock total en card
+      if (result.product_total_stock !== undefined) {
+        currentProduct.stock = result.product_total_stock;
+        updateCardInGrid(currentProduct.id, result.product_total_stock, currentProduct.stockMin);
+      }
+      
+      // Actualizar pills
+      updateVariantPillStock(selectedVariant);
+      updateUVPillStock(selectedUV);
+      
+      showFeedback(elements.stockFeedback, result.message, 'success');
+      ToastManager.success(result.message);
+      
+    } catch (error) {
+      showFeedback(elements.stockFeedback, error.message, 'error');
+      ToastManager.error(error.message);
+    } finally {
+      this.disabled = false;
+      this.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Entrada`;
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOTÓN: Retirar stock (AJAX) - AHORA POR VARIANTE + UV
+  // ─────────────────────────────────────────────────────────────────────────
+  document.getElementById('pm-btn-remove-stock')?.addEventListener('click', async function() {
+    const qty = parseInt(elements.qtyStock.value) || 0;
+    if (qty <= 0) {
+      showFeedback(elements.stockFeedback, 'Cantidad debe ser mayor a 0', 'error');
+      return;
+    }
+    
+    // OBLIGATORIO: debe haber una variante seleccionada
+    if (currentProduct.has_variants && !selectedVariant) {
+      showFeedback(elements.stockFeedback, 'Seleccione una variante primero', 'error');
+      return;
+    }
+    
+    // MULTI-UV: Debe haber una UV seleccionada
+    if (!selectedUV) {
+      showFeedback(elements.stockFeedback, 'Seleccione una unidad de venta primero', 'error');
+      return;
+    }
+    
+    // Validar stock de la UV específica
+    const stockToCheck = selectedUV.available || 0;
+    if (qty > stockToCheck) {
+      showFeedback(elements.stockFeedback, `Stock insuficiente. Disponible: ${stockToCheck}`, 'error');
+      return;
+    }
+    
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    try {
+      // Usar endpoint de variante + UV
+      const variantId = selectedVariant.variant_id;
+      const response = await fetch(`/api/product/${currentProduct.id}/variant/${variantId}/stock`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify({
+          action: 'remove',
+          cantidad: qty,
+          uv: selectedUV.uv
+        })
+      });
+      
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Error al retirar stock');
+      }
+      
+      // Actualizar la UV localmente
+      if (result.variant) {
+        selectedUV.stock = result.variant.stock;
+        selectedUV.available = result.variant.available;
+        updateUVSelection(selectedUV);
+      }
+      
+      // Actualizar stock total en card
+      if (result.product_total_stock !== undefined) {
+        currentProduct.stock = result.product_total_stock;
+        updateCardInGrid(currentProduct.id, result.product_total_stock, currentProduct.stockMin);
+      }
+      
+      // Actualizar pills
+      updateVariantPillStock(selectedVariant);
+      updateUVPillStock(selectedUV);
+      
+      showFeedback(elements.stockFeedback, result.message, 'success');
+      ToastManager.success(result.message);
+      
+    } catch (error) {
+      showFeedback(elements.stockFeedback, error.message, 'error');
+      ToastManager.error(error.message);
+    } finally {
+      this.disabled = false;
+      this.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg> Salida`;
+    }
+  });
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MULTI-UV: Funciones para actualizar pills después de cambios de stock
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  // Actualizar el pill de UV con nuevo stock
+  function updateUVPillStock(uv) {
+    if (!uv) return;
+    const pill = document.querySelector(`.uv-pill[data-uv="${uv.uv}"]`);
+    if (pill) {
+      pill.dataset.uvStock = uv.stock;
+      pill.dataset.uvAvailable = uv.available;
+      // Actualizar info en el pill
+      const infoSpan = pill.querySelector('.uv-pill-info, .text-danger.small');
+      if (infoSpan) {
+        if (uv.available <= 0) {
+          infoSpan.className = 'text-danger small';
+          infoSpan.textContent = '(Sin stock)';
+          pill.classList.add('disabled');
+          pill.disabled = true;
+        } else {
+          infoSpan.className = 'uv-pill-info';
+          infoSpan.textContent = `${uv.available} · S/${(uv.price || 0).toFixed(2)}`;
+          pill.classList.remove('disabled');
+          pill.disabled = false;
+        }
+      }
+    }
+  }
+  
+  // Función auxiliar para actualizar el pill de variante con nuevo stock
+  function updateVariantPillStock(variant) {
+    if (!variant) return;
+    const pill = document.querySelector(`[data-variant-id="${variant.variant_id}"]`);
+    if (pill) {
+      // Calcular stock total de todas las UV
+      const units = variant.units || [];
+      let totalAvailable = 0;
+      units.forEach(u => {
+        totalAvailable += (u.stock || 0) - (u.reserved || 0);
+      });
+      
+      // Actualizar estado del pill (solo enabled/disabled, sin texto de stock)
+      const stockBadge = pill.querySelector('.badge');
+      if (totalAvailable <= 0) {
+        pill.classList.add('disabled');
+        pill.disabled = true;
+        if (!stockBadge) {
+          pill.insertAdjacentHTML('beforeend', '<span class="badge bg-danger ms-2" style="font-size:0.65rem">✗</span>');
+        }
+      } else {
+        pill.classList.remove('disabled');
+        pill.disabled = false;
+        if (stockBadge) {
+          stockBadge.remove();
+        }
+      }
+    }
+  }
+  
+  // Función auxiliar para actualizar el pill de UV después de cambio de stock
+  function updateUVPillStock(uv) {
+    if (!uv || !uv.uv) return;
+    const pill = document.querySelector(`[data-uv="${uv.uv}"]`);
+    if (pill) {
+      const available = uv.available || ((uv.stock || 0) - (uv.reserved || 0));
+      const stockSpan = pill.querySelector('.uv-pill-stock');
+      
+      if (stockSpan) {
+        if (available <= 0) {
+          stockSpan.textContent = '✗';
+          pill.classList.add('disabled');
+          pill.disabled = true;
+        } else {
+          stockSpan.textContent = `(${available})`;
+          pill.classList.remove('disabled');
+          pill.disabled = false;
+        }
+      }
+      
+      // Actualizar data attributes
+      pill.dataset.uvStock = uv.stock || 0;
+      pill.dataset.uvAvailable = available;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOTÓN: Agregar al carrito (usando /api/carrito/agregar)
+  // ─────────────────────────────────────────────────────────────────────────
+  document.getElementById('pm-btn-add-cart')?.addEventListener('click', async function() {
+    const qty = parseInt(elements.qtySell.value) || 0;
+    const price = parseFloat(elements.priceSell.value) || 0;
+    
+    // Obtener variante seleccionada (si existe)
+    const variantId = selectedVariant ? selectedVariant.variant_id : null;
+    const variantAttrs = selectedVariant ? selectedVariant.attributes : {};
+    
+    // ═══════════════════════════════════════════════════════════════════
+    // MULTI-UV: Obtener UV seleccionada (obligatoria)
+    // ═══════════════════════════════════════════════════════════════════
+    const uv = selectedUV ? selectedUV.uv : null;
+    const uvLabel = selectedUV ? selectedUV.label : null;
+    
+    // ═══════════════════════════════════════════════════════════════════
+    // VALIDACIÓN: No se puede vender sin variantes
+    // ═══════════════════════════════════════════════════════════════════
+    const hasVariants = currentProduct.variants && currentProduct.variants.length > 0;
+    
+    if (!hasVariants) {
+      showFeedback(elements.cartFeedback, '⚠️ Este producto no tiene variantes. Agrega una variante antes de vender.', 'error');
+      return;
+    }
+    
+    if (!selectedVariant) {
+      showFeedback(elements.cartFeedback, 'Debe seleccionar una variante', 'error');
+      return;
+    }
+    
+    if (!selectedUV) {
+      showFeedback(elements.cartFeedback, 'Debe seleccionar una unidad de venta', 'error');
+      return;
+    }
+    
+    // Determinar stock disponible de la UV seleccionada
+    let stockDisponible = selectedUV.available || 0;
+    
+    // Validaciones del lado cliente
+    if (qty <= 0) {
+      showFeedback(elements.cartFeedback, 'Cantidad debe ser mayor a 0', 'error');
+      return;
+    }
+    
+    if (qty > stockDisponible) {
+      showFeedback(elements.cartFeedback, `Stock insuficiente. Disponible: ${stockDisponible}`, 'error');
+      return;
+    }
+    if (price < 0) {
+      showFeedback(elements.cartFeedback, 'Precio inválido', 'error');
+      return;
+    }
+    
+    this.disabled = true;
+    const originalHtml = this.innerHTML;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Agregando...';
+    
+    try {
+      // ═══════════════════════════════════════════════════════════════════
+      // LLAMAR AL BACKEND con fetch + JSON (incluye variant_id + UV)
+      // ═══════════════════════════════════════════════════════════════════
+      const response = await fetch(API_ENDPOINTS.carritoAgregar, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify({
+          producto_id: currentProduct.id,
+          cantidad: qty,
+          precio_unitario: price,
+          variant_id: variantId,
+          variant_attributes: variantAttrs,
+          uv: uv,
+          uv_label: uvLabel
+        })
+      });
+      
+      // Parsear respuesta como JSON
+      const result = await response.json();
+      
+      // Verificar si hubo error
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || 'Error al agregar al carrito');
+      }
+      
+      // ═══════════════════════════════════════════════════════════════════
+      // ÉXITO: También actualizar carrito local para sincronizar UI
+      // ═══════════════════════════════════════════════════════════════════
+      // Incluir variant info en el carrito local
+      dashboardCart.addWithVariant(currentProduct.id, currentProduct.name, qty, price, variantId, variantAttrs);
+      
+      // Feedback visual - incluir variante y UV si existen
+      let mensaje = `${currentProduct.name}`;
+      if (variantAttrs && Object.keys(variantAttrs).length > 0) {
+        const variantDesc = Object.values(variantAttrs).join(' / ');
+        mensaje += ` (${variantDesc})`;
+      }
+      // Agregar UV al mensaje
+      const uvDisplay = uv === 'OTRA' && uvLabel ? uvLabel : formatUnit(qty, uv);
+      mensaje += ` x${qty} ${uvDisplay} agregado al carrito`;
+      showFeedback(elements.cartFeedback, mensaje, 'success');
+      ToastManager.success(`🛒 ${mensaje}`);
+      
+      // Mostrar info del carrito actualizado y refrescar panel
+      if (result.carrito) {
+        console.log('Carrito actualizado:', result.carrito);
+        // Actualizar badge del FAB
+        const badge = document.getElementById('cart-fab-badge');
+        if (badge) {
+          badge.textContent = result.carrito.total_items;
+          badge.style.display = result.carrito.total_items > 0 ? 'flex' : 'none';
+        }
+      }
+      
+      // Refrescar panel de carrito si está abierto
+      if (typeof window.refreshCartPanel === 'function') {
+        window.refreshCartPanel();
+      }
+      
+      // Efecto visual en el botón - animación de éxito
+      this.classList.add('btn-add-success', 'anim-pulse-success');
+      setTimeout(() => this.classList.remove('btn-add-success', 'anim-pulse-success'), 500);
+      
+      // NO cerrar el modal - permitir agregar más
+      
+    } catch (error) {
+      // Manejo de errores con animación shake
+      console.error('Error agregando al carrito:', error);
+      showFeedback(elements.cartFeedback, error.message, 'error');
+      ToastManager.error(error.message);
+      // Animación shake en el botón para indicar error
+      this.classList.add('anim-shake');
+      setTimeout(() => this.classList.remove('anim-shake'), 300);
+    } finally {
+      this.disabled = false;
+      this.innerHTML = originalHtml;
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOTÓN: Editar producto
+  // ─────────────────────────────────────────────────────────────────────────
+  document.getElementById('pm-btn-edit')?.addEventListener('click', function() {
+    if (!currentProduct) return;
+    
+    // Cerrar modal actual
+    const bsModal = bootstrap.Modal.getInstance(productModal);
+    bsModal.hide();
+    
+    // Configurar formulario de edición
+    const editForm = document.getElementById('edit-product-form');
+    if (editForm) {
+      editForm.action = `/products/edit/${currentProduct.id}`;
+      document.getElementById('edit-nombre').value = currentProduct.name;
+      document.getElementById('edit-categoria').value = currentProduct.categoria;
+      document.getElementById('edit-cantidad').value = currentProduct.stock;
+      document.getElementById('edit-stock-min').value = currentProduct.stockMin;
+      document.getElementById('edit-cost').value = currentProduct.cost;
+      document.getElementById('edit-price').value = currentProduct.price;
+      document.getElementById('edit-color').value = currentProduct.color;
+      document.getElementById('edit-unidad').value = currentProduct.unidad;
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOTÓN: Eliminar producto
+  // ─────────────────────────────────────────────────────────────────────────
+  document.getElementById('pm-btn-delete')?.addEventListener('click', function() {
+    if (!currentProduct) return;
+    
+    const confirmMsg = `¿Eliminar "${currentProduct.name}" (SKU ${currentProduct.sku})?\n\nEsta acción no se puede deshacer.`;
+    if (!confirm(confirmMsg)) return;
+    
+    // Enviar formulario de eliminación
+    const form = document.getElementById('pm-delete-form');
+    form.action = `/products/delete/${currentProduct.id}`;
+    form.submit();
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FORMULARIO: Agregar nueva variante (ADMIN)
+  // ─────────────────────────────────────────────────────────────────────────
+  const variantForm = document.getElementById('pm-variant-form');
+  const showVariantFormBtn = document.getElementById('pm-btn-show-variant-form');
+  const cancelVariantBtn = document.getElementById('pm-btn-cancel-variant');
+  const saveVariantBtn = document.getElementById('pm-btn-save-variant');
+  const variantFeedback = document.getElementById('pm-variant-feedback');
+  const uvOtraWrap = document.getElementById('pm-uv-otra-wrap');
+  const uvLabelInput = document.getElementById('pm-uv-label');
+  
+  // Escuchar cambios en radio buttons de UV
+  document.querySelectorAll('input[name="pm-uv"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.value === 'OTRA') {
+        uvOtraWrap.style.display = 'block';
+        uvLabelInput.focus();
+      } else {
+        uvOtraWrap.style.display = 'none';
+        uvLabelInput.value = '';
+      }
+    });
+  });
+  
+  showVariantFormBtn?.addEventListener('click', function() {
+    variantForm.style.display = 'block';
+    if (variantButtons) variantButtons.style.display = 'none';
+    // Pre-llenar precios del producto actual
+    document.getElementById('pm-new-variant-price').placeholder = currentProduct.price || '0.00';
+    document.getElementById('pm-new-variant-cost').placeholder = currentProduct.cost || '0.00';
+  });
+  
+  cancelVariantBtn?.addEventListener('click', function() {
+    variantForm.style.display = 'none';
+    if (variantButtons) variantButtons.style.display = 'flex';
+    // Limpiar campos
+    document.getElementById('pm-new-variant-attr-key').value = '';
+    document.getElementById('pm-new-variant-attr-val').value = '';
+    document.getElementById('pm-new-variant-stock').value = '0';
+    document.getElementById('pm-uv-unidad').checked = true;
+    uvOtraWrap.style.display = 'none';
+    uvLabelInput.value = '';
+    document.getElementById('pm-new-variant-price').value = '';
+    document.getElementById('pm-new-variant-cost').value = '';
+    variantFeedback.style.display = 'none';
+  });
+  
+  saveVariantBtn?.addEventListener('click', async function() {
+    const attrKey = document.getElementById('pm-new-variant-attr-key').value.trim();
+    const attrVal = document.getElementById('pm-new-variant-attr-val').value.trim();
+    const stock = parseInt(document.getElementById('pm-new-variant-stock').value) || 0;
+    const uv = document.querySelector('input[name="pm-uv"]:checked').value;
+    const uvLabel = uvLabelInput.value.trim();
+    const price = document.getElementById('pm-new-variant-price').value;
+    const cost = document.getElementById('pm-new-variant-cost').value;
+    
+    // Validar
+    if (!attrKey || !attrVal) {
+      variantFeedback.innerHTML = '<span class="text-danger small">Debe ingresar atributo y valor</span>';
+      variantFeedback.style.display = 'block';
+      return;
+    }
+    
+    // Validar UV: si es OTRA, debe especificar label
+    if (uv === 'OTRA' && !uvLabel) {
+      variantFeedback.innerHTML = '<span class="text-danger small">Debe especificar la unidad de venta</span>';
+      variantFeedback.style.display = 'block';
+      uvLabelInput.focus();
+      return;
+    }
+    
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    try {
+      const response = await fetch(`/api/product/${currentProduct.id}/variant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify({
+          attributes: { [attrKey]: attrVal },
+          stock: stock,
+          uv: uv,
+          uv_label: uv === 'OTRA' ? uvLabel : null,
+          price: price || null,
+          cost: cost || null
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Error al crear variante');
+      }
+      
+      // Éxito - recargar variantes
+      variantFeedback.innerHTML = '<span class="text-success small">✓ Variante creada</span>';
+      variantFeedback.style.display = 'block';
+      ToastManager.success(`Variante "${attrVal}" creada`);
+      
+      // Recargar datos del producto
+      const prodResponse = await fetch(`/api/product/${currentProduct.id}`);
+      if (prodResponse.ok) {
+        const prodData = await prodResponse.json();
+        if (prodData.success && prodData.product) {
+          currentProduct.variants = prodData.product.variants;
+          currentProduct.has_variants = prodData.product.has_variants;
+          currentProduct.stock = prodData.product.total_stock;
+          generateVariations(currentProduct);
+          updateCardInGrid(currentProduct.id, prodData.product.total_stock, currentProduct.stockMin);
+        }
+      }
+      
+      // Ocultar formulario
+      setTimeout(() => {
+        cancelVariantBtn.click();
+        variantFeedback.style.display = 'none';
+      }, 1500);
+      
+    } catch (error) {
+      variantFeedback.innerHTML = `<span class="text-danger small">✗ ${error.message}</span>`;
+      variantFeedback.style.display = 'block';
+      ToastManager.error(error.message);
+    } finally {
+      this.disabled = false;
+      this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg> Crear Variante';
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FORMULARIO: Agregar UV a variante existente (ADMIN)
+  // ─────────────────────────────────────────────────────────────────────────
+  const addUvForm = document.getElementById('pm-add-uv-form');
+  const showUvFormBtn = document.getElementById('pm-btn-show-uv-form');
+  const cancelUvBtn = document.getElementById('pm-btn-cancel-uv');
+  const saveUvBtn = document.getElementById('pm-btn-save-uv');
+  const addUvFeedback = document.getElementById('pm-add-uv-feedback');
+  const addUvOtraWrap = document.getElementById('pm-add-uv-otra-wrap');
+  const addUvLabelInput = document.getElementById('pm-add-uv-label');
+  const addUvVariantName = document.getElementById('pm-add-uv-variant-name');
+  const variantButtons = document.getElementById('pm-variant-buttons');
+  
+  // Escuchar cambios en radio buttons de UV (formulario agregar UV)
+  document.querySelectorAll('input[name="pm-add-uv"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.value === 'OTRA') {
+        addUvOtraWrap.style.display = 'block';
+        addUvLabelInput?.focus();
+      } else {
+        addUvOtraWrap.style.display = 'none';
+        if (addUvLabelInput) addUvLabelInput.value = '';
+      }
+    });
+  });
+  
+  // Mostrar botón "+ UV" cuando hay variante seleccionada
+  function updateAddUvButtonVisibility() {
+    if (showUvFormBtn && selectedVariant) {
+      showUvFormBtn.style.display = 'inline-flex';
+    } else if (showUvFormBtn) {
+      showUvFormBtn.style.display = 'none';
+    }
+  }
+  
+  showUvFormBtn?.addEventListener('click', function() {
+    if (!selectedVariant) {
+      ToastManager.warning('Selecciona una variante primero');
+      return;
+    }
+    
+    // Mostrar nombre de la variante
+    const attrText = Object.values(selectedVariant.attributes || {}).join(' / ') || selectedVariant.variant_id;
+    if (addUvVariantName) addUvVariantName.textContent = attrText;
+    
+    // Ocultar botones y mostrar formulario
+    if (variantButtons) variantButtons.style.display = 'none';
+    if (addUvForm) addUvForm.style.display = 'block';
+    
+    // Deshabilitar UV que ya existen en la variante
+    const existingUVs = (selectedVariant.units || []).map(u => u.uv);
+    document.querySelectorAll('input[name="pm-add-uv"]').forEach(radio => {
+      const label = radio.nextElementSibling;
+      if (existingUVs.includes(radio.value)) {
+        radio.disabled = true;
+        if (label) label.classList.add('disabled');
+      } else {
+        radio.disabled = false;
+        if (label) label.classList.remove('disabled');
+      }
+    });
+    
+    // Seleccionar primera UV disponible
+    const firstAvailable = document.querySelector('input[name="pm-add-uv"]:not(:disabled)');
+    if (firstAvailable) firstAvailable.checked = true;
+  });
+  
+  cancelUvBtn?.addEventListener('click', function() {
+    if (addUvForm) addUvForm.style.display = 'none';
+    if (variantButtons) variantButtons.style.display = 'flex';
+    
+    // Limpiar campos
+    document.getElementById('pm-add-uv-stock').value = '0';
+    document.getElementById('pm-add-uv-price').value = '';
+    document.getElementById('pm-add-uv-cost').value = '';
+    document.getElementById('pm-add-uv-unidad').checked = true;
+    if (addUvOtraWrap) addUvOtraWrap.style.display = 'none';
+    if (addUvLabelInput) addUvLabelInput.value = '';
+    if (addUvFeedback) addUvFeedback.style.display = 'none';
+  });
+  
+  saveUvBtn?.addEventListener('click', async function() {
+    if (!selectedVariant) {
+      ToastManager.error('No hay variante seleccionada');
+      return;
+    }
+    
+    const uv = document.querySelector('input[name="pm-add-uv"]:checked')?.value;
+    const uvLabel = addUvLabelInput?.value.trim() || '';
+    const stock = parseInt(document.getElementById('pm-add-uv-stock')?.value) || 0;
+    const price = document.getElementById('pm-add-uv-price')?.value;
+    const cost = document.getElementById('pm-add-uv-cost')?.value;
+    
+    // Validar UV: si es OTRA, debe especificar label
+    if (uv === 'OTRA' && !uvLabel) {
+      if (addUvFeedback) {
+        addUvFeedback.innerHTML = '<span class="text-danger small">Debe especificar la unidad de venta</span>';
+        addUvFeedback.style.display = 'block';
+      }
+      addUvLabelInput?.focus();
+      return;
+    }
+    
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    try {
+      const response = await fetch(`/api/product/${currentProduct.id}/variant/${selectedVariant.variant_id}/uv`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify({
+          uv: uv,
+          uv_label: uv === 'OTRA' ? uvLabel : null,
+          stock: stock,
+          price: price || null,
+          cost: cost || null
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Error al agregar UV');
+      }
+      
+      // Éxito
+      const uvDisplayName = uv === 'OTRA' ? uvLabel : uv;
+      if (addUvFeedback) {
+        addUvFeedback.innerHTML = `<span class="text-success small">✓ UV "${uvDisplayName}" agregada</span>`;
+        addUvFeedback.style.display = 'block';
+      }
+      ToastManager.success(`UV "${uvDisplayName}" agregada a variante`);
+      
+      // Recargar datos del producto
+      const prodResponse = await fetch(`/api/product/${currentProduct.id}`);
+      if (prodResponse.ok) {
+        const prodData = await prodResponse.json();
+        if (prodData.success && prodData.product) {
+          currentProduct.variants = prodData.product.variants;
+          currentProduct.stock = prodData.product.total_stock;
+          
+          // Re-seleccionar la misma variante para actualizar UV pills
+          const updatedVariant = prodData.product.variants.find(v => v.variant_id === selectedVariant.variant_id);
+          if (updatedVariant) {
+            selectedVariant = updatedVariant;
+            generateUVPills(updatedVariant);
+          }
+          
+          updateCardInGrid(currentProduct.id, prodData.product.total_stock, currentProduct.stockMin);
+        }
+      }
+      
+      // Ocultar formulario
+      setTimeout(() => {
+        cancelUvBtn?.click();
+      }, 1500);
+      
+    } catch (error) {
+      if (addUvFeedback) {
+        addUvFeedback.innerHTML = `<span class="text-danger small">✗ ${error.message}</span>`;
+        addUvFeedback.style.display = 'block';
+      }
+      ToastManager.error(error.message);
+    } finally {
+      this.disabled = false;
+      this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg> Agregar UV';
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TOASTS: Inicializar los que vienen del servidor
+  // ─────────────────────────────────────────────────────────────────────────
+  const toastContainer = document.getElementById('toastContainer');
+  if (toastContainer) {
+    const toastEls = toastContainer.querySelectorAll('.toast');
+    toastEls.forEach(function(el) {
+      const svg = el.querySelector('svg');
+      if (svg) svg.style.color = getComputedStyle(document.documentElement).getPropertyValue('--orange').trim();
+      const t = new bootstrap.Toast(el);
+      t.show();
+    });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PREVIEW DE IMAGEN EN MODAL NUEVO PRODUCTO
+// ═══════════════════════════════════════════════════════════════════════════
+document.getElementById('imagen_file')?.addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  const preview = document.getElementById('previewNuevoProducto');
+  if (!file || !preview) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) { preview.src = ev.target.result; };
+  reader.readAsDataURL(file);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VALIDACIÓN DE FORMULARIO NUEVO PRODUCTO
+// ═══════════════════════════════════════════════════════════════════════════
+(function() {
+  const form = document.querySelector('#modalNuevoProducto form');
+  if (!form) return;
+  const fileInput = form.querySelector('input[name="imagen_file"]');
+  const allowed = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+  const maxBytes = 5 * 1024 * 1024;
+  
+  form.addEventListener('submit', function(e) {
+    const nombre = form.querySelector('input[name="nombre"]').value.trim();
+    if (!nombre) {
+      e.preventDefault();
+      ToastManager.error('Nombre requerido');
+      return false;
+    }
+    const cantidad = Number(form.querySelector('input[name="cantidad"]').value);
+    const stock_min = Number(form.querySelector('input[name="stock_min"]').value);
+    if (isNaN(cantidad) || cantidad < 0) {
+      e.preventDefault();
+      ToastManager.error('Cantidad inválida');
+      return false;
+    }
+    if (isNaN(stock_min) || stock_min < 0) {
+      e.preventDefault();
+      ToastManager.error('Stock mínimo inválido');
+      return false;
+    }
+    if (fileInput && fileInput.files.length) {
+      const f = fileInput.files[0];
+      const ext = f.name.split('.').pop().toLowerCase();
+      if (!allowed.includes(ext)) {
+        e.preventDefault();
+        ToastManager.error('Formato de imagen no permitido');
+        return false;
+      }
+      if (f.size > maxBytes) {
+        e.preventDefault();
+        ToastManager.error('La imagen supera 5MB');
+        return false;
+      }
+    }
+    return true;
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL DE CARRITO - SISTEMA POS
+// ═══════════════════════════════════════════════════════════════════════════
+(function() {
+  const cartPanel = document.getElementById('cart-panel');
+  const cartFab = document.getElementById('cart-fab');
+  const cartFabBadge = document.getElementById('cart-fab-badge');
+  const cartCloseBtn = document.getElementById('cart-panel-close');
+  const cartItemsList = document.getElementById('cart-items-list');
+  const cartEmptyMsg = document.getElementById('cart-empty-msg');
+  const cartTotalAmount = document.getElementById('cart-total-amount');
+  const cartClearBtn = document.getElementById('cart-clear-btn');
+  const cartConfirmBtn = document.getElementById('cart-confirm-btn');
+  
+  // Nuevos elementos para pagos y cliente
+  const cartPaymentAmount = document.getElementById('cart-payment-amount');
+  const cartPaymentMethod = document.getElementById('cart-payment-method');
+  const cartPaymentFullpay = document.getElementById('cart-payment-fullpay');
+  const cartResultStatus = document.getElementById('cart-result-status');
+  const cartPendingAmount = document.getElementById('cart-pending-amount');
+  const toggleClientData = document.getElementById('toggle-client-data');
+  const clientDataSection = document.getElementById('client-data-section');
+  const cartClientName = document.getElementById('cart-client-name');
+  const cartClientDoc = document.getElementById('cart-client-doc');
+  const cartClientObs = document.getElementById('cart-client-obs');
+  
+  if (!cartPanel || !cartFab) return;
+  
+  let overlay = null;
+  let currentCartTotal = 0;  // Variable para almacenar el total actual
+  
+  // Funciones de UI del panel
+  function openCartPanel() {
+    // Crear overlay
+    overlay = document.createElement('div');
+    overlay.className = 'cart-overlay';
+    overlay.addEventListener('click', closeCartPanel);
+    document.body.appendChild(overlay);
+    
+    // Mostrar panel
+    cartPanel.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Cargar items del servidor
+    loadCartFromServer();
+  }
+  
+  function closeCartPanel() {
+    if (overlay) {
+      overlay.remove();
+      overlay = null;
+    }
+    cartPanel.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  
+  // Cargar carrito del servidor
+  async function loadCartFromServer() {
+    try {
+      const response = await fetch(API_ENDPOINTS.carritoVer);
+      const data = await response.json();
+      
+      if (data.ok) {
+        renderCartItems(data.carrito || []);
+        currentCartTotal = data.total_monto || 0;
+        updateCartTotal(currentCartTotal);
+        updateFabBadge(data.total_items || 0);
+        updatePaymentPreview();  // Actualizar vista previa de pago
+      }
+    } catch (error) {
+      console.error('Error cargando carrito:', error);
+    }
+  }
+  
+  // Renderizar items del carrito
+  function renderCartItems(items) {
+    if (!items || items.length === 0) {
+      cartItemsList.innerHTML = '<p class="text-muted text-center" id="cart-empty-msg">El carrito está vacío</p>';
+      cartConfirmBtn.disabled = true;
+      return;
+    }
+    
+    cartConfirmBtn.disabled = false;
+    let html = '';
+    
+    items.forEach(item => {
+      const subtotal = (item.cantidad * item.precio_unitario).toFixed(2);
+      
+      // Unidad de Venta (UV) - nuevo sistema
+      const uvUnit = item.unit || item.unit_type || 'UNIDAD';
+      const uvLabel = item.unit_label;
+      const uvDisplay = uvUnit === 'OTRA' && uvLabel ? uvLabel : uvUnit;
+      
+      // Formatear atributos de variante
+      let variantLabel = '';
+      if (item.variant_attributes && Object.keys(item.variant_attributes).length > 0) {
+        const attrs = Object.entries(item.variant_attributes)
+          .map(([k, v]) => `${v}`)
+          .join(' / ');
+        variantLabel = `<span class="badge bg-secondary ms-1" style="font-size: 0.7rem;">${attrs}</span>`;
+      } else if (item.color) {
+        // Fallback para items legacy con solo color
+        variantLabel = `<span class="text-muted">• ${item.color}</span>`;
+      }
+      
+      html += `
+        <div class="cart-item" data-pid="${item.producto_id}" data-variacion="${item.variant_id || item.variacion_id || ''}">
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.nombre} ${variantLabel}</div>
+            <div class="cart-item-details">
+              ${item.cantidad} ${uvDisplay} × S/ ${item.precio_unitario.toFixed(2)}
+            </div>
+          </div>
+          <div class="cart-item-price">S/ ${subtotal}</div>
+          <button type="button" class="cart-item-remove" data-pid="${item.producto_id}" data-variacion="${item.variant_id || item.variacion_id || ''}" title="Eliminar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      `;
+    });
+    
+    cartItemsList.innerHTML = html;
+    
+    // Agregar event listeners a botones de eliminar
+    cartItemsList.querySelectorAll('.cart-item-remove').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const pid = parseInt(this.dataset.pid);
+        const variacion = this.dataset.variacion || null;
+        await removeItemFromCart(pid, variacion);
+      });
+    });
+  }
+  
+  function updateCartTotal(total) {
+    cartTotalAmount.textContent = `S/ ${total.toFixed(2)}`;
+  }
+  
+  function updateFabBadge(count) {
+    cartFabBadge.textContent = count;
+    cartFabBadge.style.display = count > 0 ? 'flex' : 'none';
+  }
+  
+  // Actualizar vista previa de pago (estado resultante y pendiente)
+  function updatePaymentPreview() {
+    const paymentValue = parseFloat(cartPaymentAmount.value) || 0;
+    const total = currentCartTotal;
+    
+    let pending = Math.max(0, total - paymentValue);
+    pending = Math.round(pending * 100) / 100;  // Redondear a 2 decimales
+    
+    // Determinar estado resultante
+    let status = 'POR PAGAR';
+    let statusClass = 'bg-warning text-dark';
+    
+    if (paymentValue >= total && total > 0) {
+      status = 'CANCELADO';
+      statusClass = 'bg-success';
+      pending = 0;
+    }
+    
+    // Actualizar UI
+    cartResultStatus.textContent = status;
+    cartResultStatus.className = `badge ${statusClass}`;
+    cartPendingAmount.textContent = `S/ ${pending.toFixed(2)}`;
+    
+    // Cambiar color del pendiente si hay monto
+    if (pending > 0) {
+      cartPendingAmount.classList.add('text-warning');
+      cartPendingAmount.classList.remove('text-muted');
+    } else {
+      cartPendingAmount.classList.remove('text-warning');
+      cartPendingAmount.classList.add('text-muted');
+    }
+  }
+  
+  // Eliminar item del carrito
+  async function removeItemFromCart(productoId, variantId) {
+    try {
+      const response = await fetch(API_ENDPOINTS.carritoEliminar, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify({
+          producto_id: productoId,
+          variant_id: variantId
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.ok) {
+        loadCartFromServer();
+        ToastManager.success('Producto eliminado del carrito');
+      } else {
+        ToastManager.error(data.error || 'Error al eliminar');
+      }
+    } catch (error) {
+      ToastManager.error('Error de conexión');
+    }
+  }
+  
+  // Vaciar carrito
+  async function clearCart() {
+    try {
+      const response = await fetch(API_ENDPOINTS.carritoLimpiar, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': CSRF_TOKEN
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.ok) {
+        // Limpiar campos de pago y cliente también
+        cartPaymentAmount.value = '';
+        cartClientName.value = '';
+        cartClientDoc.value = '';
+        cartClientObs.value = '';
+        currentCartTotal = 0;
+        
+        // Limpiar campos de entrega
+        clearDeliveryFields();
+        
+        loadCartFromServer();
+        ToastManager.success('Carrito vaciado');
+      }
+    } catch (error) {
+      ToastManager.error('Error al vaciar carrito');
+    }
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SISTEMA DE DATOS DE ENTREGA
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  // Obtener tipo de entrega seleccionado
+  function getSelectedDeliveryType() {
+    const selected = document.querySelector('input[name="delivery-type"]:checked');
+    return selected ? selected.value : 'RECOJO';
+  }
+  
+  // Mostrar campos según tipo de entrega
+  function showDeliveryFields(tipo) {
+    // Ocultar todos
+    document.querySelectorAll('.delivery-fields').forEach(el => {
+      el.style.display = 'none';
+    });
+    
+    // Mostrar el correspondiente
+    const fieldId = `delivery-fields-${tipo.toLowerCase()}`;
+    const fields = document.getElementById(fieldId);
+    if (fields) {
+      fields.style.display = 'block';
+    }
+  }
+  
+  // Limpiar campos de entrega
+  function clearDeliveryFields() {
+    // Recojo
+    const recojoNombre = document.getElementById('recojo-nombre');
+    const recojoTelefono = document.getElementById('recojo-telefono');
+    const recojoObs = document.getElementById('recojo-observacion');
+    if (recojoNombre) recojoNombre.value = '';
+    if (recojoTelefono) recojoTelefono.value = '';
+    if (recojoObs) recojoObs.value = '';
+    
+    // Delivery
+    const deliveryDireccion = document.getElementById('delivery-direccion');
+    const deliveryTelefono = document.getElementById('delivery-telefono');
+    const deliveryReferencia = document.getElementById('delivery-referencia');
+    const deliveryObs = document.getElementById('delivery-observacion');
+    if (deliveryDireccion) deliveryDireccion.value = '';
+    if (deliveryTelefono) deliveryTelefono.value = '';
+    if (deliveryReferencia) deliveryReferencia.value = '';
+    if (deliveryObs) deliveryObs.value = '';
+    
+    // Provincia
+    const provAgencia = document.getElementById('provincia-agencia');
+    const provCiudad = document.getElementById('provincia-ciudad');
+    const provNombre = document.getElementById('provincia-nombre');
+    const provDni = document.getElementById('provincia-dni');
+    const provTelefono = document.getElementById('provincia-telefono');
+    const provObs = document.getElementById('provincia-observacion');
+    if (provAgencia) provAgencia.value = '';
+    if (provCiudad) provCiudad.value = '';
+    if (provNombre) provNombre.value = '';
+    if (provDni) provDni.value = '';
+    if (provTelefono) provTelefono.value = '';
+    if (provObs) provObs.value = '';
+    
+    // Resetear selector a RECOJO
+    const recojoRadio = document.getElementById('delivery-recojo');
+    if (recojoRadio) recojoRadio.checked = true;
+    showDeliveryFields('RECOJO');
+  }
+  
+  // Obtener datos de entrega según tipo
+  function getDeliveryData() {
+    const tipo = getSelectedDeliveryType();
+    const delivery = { tipo };
+    
+    if (tipo === 'RECOJO') {
+      delivery.nombre = (document.getElementById('recojo-nombre')?.value || '').trim();
+      delivery.telefono = (document.getElementById('recojo-telefono')?.value || '').trim();
+      delivery.observacion = (document.getElementById('recojo-observacion')?.value || '').trim();
+    } else if (tipo === 'DELIVERY') {
+      delivery.direccion = (document.getElementById('delivery-direccion')?.value || '').trim();
+      delivery.telefono = (document.getElementById('delivery-telefono')?.value || '').trim();
+      delivery.referencia = (document.getElementById('delivery-referencia')?.value || '').trim();
+      delivery.observacion = (document.getElementById('delivery-observacion')?.value || '').trim();
+    } else if (tipo === 'PROVINCIA') {
+      delivery.agencia = (document.getElementById('provincia-agencia')?.value || '').trim();
+      delivery.ciudad = (document.getElementById('provincia-ciudad')?.value || '').trim();
+      delivery.nombre = (document.getElementById('provincia-nombre')?.value || '').trim();
+      delivery.dni = (document.getElementById('provincia-dni')?.value || '').trim();
+      delivery.telefono = (document.getElementById('provincia-telefono')?.value || '').trim();
+      delivery.observacion = (document.getElementById('provincia-observacion')?.value || '').trim();
+    }
+    
+    return delivery;
+  }
+  
+  // Validar campos obligatorios según tipo
+  function validateDeliveryFields() {
+    const tipo = getSelectedDeliveryType();
+    let isValid = true;
+    
+    // Limpiar validaciones previas
+    document.querySelectorAll('.delivery-fields input').forEach(input => {
+      input.classList.remove('is-invalid');
+    });
+    
+    if (tipo === 'DELIVERY') {
+      const direccion = document.getElementById('delivery-direccion');
+      const telefono = document.getElementById('delivery-telefono');
+      
+      if (!direccion?.value.trim()) {
+        direccion?.classList.add('is-invalid');
+        isValid = false;
+      }
+      if (!telefono?.value.trim()) {
+        telefono?.classList.add('is-invalid');
+        isValid = false;
+      }
+    } else if (tipo === 'PROVINCIA') {
+      const campos = [
+        'provincia-agencia',
+        'provincia-ciudad', 
+        'provincia-nombre',
+        'provincia-dni',
+        'provincia-telefono'
+      ];
+      
+      campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el?.value.trim()) {
+          el?.classList.add('is-invalid');
+          isValid = false;
+        }
+      });
+    }
+    // RECOJO: no tiene campos obligatorios
+    
+    return isValid;
+  }
+  
+  // Event listeners para cambio de tipo de entrega
+  document.querySelectorAll('input[name="delivery-type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      showDeliveryFields(this.value);
+    });
+  });
+  
+  // Confirmar venta
+  async function confirmSale() {
+    // Validar campos de entrega obligatorios
+    if (!validateDeliveryFields()) {
+      ToastManager.warning('Completa los campos obligatorios de entrega');
+      return;
+    }
+    
+    // Mostrar estado de carga
+    const originalText = cartConfirmBtn.innerHTML;
+    cartConfirmBtn.disabled = true;
+    cartConfirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
+    
+    try {
+      // Construir datos de pago
+      const paymentAmount = parseFloat(cartPaymentAmount.value) || 0;
+      const paymentMethod = cartPaymentMethod.value;
+      
+      const payments = [];
+      if (paymentAmount > 0) {
+        payments.push({
+          amount: paymentAmount,
+          method: paymentMethod
+        });
+      }
+      
+      // Datos de cliente
+      const clientData = {
+        client_name: cartClientName.value.trim(),
+        client_doc: cartClientDoc.value.trim(),
+        client_obs: cartClientObs.value.trim()
+      };
+      
+      // Datos de entrega
+      const delivery = getDeliveryData();
+      
+      const requestBody = {
+        ...clientData,
+        payments: payments,
+        delivery: delivery
+      };
+      
+      const response = await fetch(API_ENDPOINTS.carritoConfirmar, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': CSRF_TOKEN
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Éxito - mostrar mensaje según estado
+        const statusMsg = data.status === 'CANCELADO' 
+          ? '✓ Pagado - Generando boleta...' 
+          : '⏳ Registrada como POR PAGAR';
+        ToastManager.success(`¡Venta ${data.receipt}! ${statusMsg}`);
+        
+        // Limpiar campos
+        cartPaymentAmount.value = '';
+        cartClientName.value = '';
+        cartClientDoc.value = '';
+        cartClientObs.value = '';
+        currentCartTotal = 0;
+        
+        // Limpiar campos de entrega
+        clearDeliveryFields();
+        
+        // Actualizar UI
+        updateFabBadge(0);
+        
+        // Cerrar panel
+        closeCartPanel();
+        
+        // Redirigir solo si el backend envió redirect (CANCELADO)
+        // Si es POR PAGAR, quedarse en dashboard
+        if (data.redirect) {
+          setTimeout(() => {
+            window.location.href = data.redirect;
+          }, 500);
+        }
+        // Si no hay redirect (POR PAGAR), simplemente no hacer nada más
+        
+      } else {
+        ToastManager.error(data.error || 'Error al confirmar venta');
+        cartConfirmBtn.disabled = false;
+        cartConfirmBtn.innerHTML = originalText;
+      }
+    } catch (error) {
+      console.error('Error confirmando venta:', error);
+      ToastManager.error('Error de conexión');
+      cartConfirmBtn.disabled = false;
+      cartConfirmBtn.innerHTML = originalText;
+    }
+  }
+  
+  // Event listeners
+  cartFab.addEventListener('click', openCartPanel);
+  cartCloseBtn.addEventListener('click', closeCartPanel);
+  
+  cartClearBtn.addEventListener('click', function() {
+    if (confirm('¿Vaciar todo el carrito?')) {
+      clearCart();
+    }
+  });
+  
+  cartConfirmBtn.addEventListener('click', function() {
+    const paymentAmount = parseFloat(cartPaymentAmount.value) || 0;
+    const statusMsg = paymentAmount >= currentCartTotal ? 'CANCELADO (pagado)' : 'POR PAGAR (pendiente)';
+    if (confirm(`¿Confirmar venta?\nEstado: ${statusMsg}`)) {
+      confirmSale();
+    }
+  });
+  
+  // Botón de pagar todo
+  if (cartPaymentFullpay) {
+    cartPaymentFullpay.addEventListener('click', function() {
+      cartPaymentAmount.value = currentCartTotal.toFixed(2);
+      updatePaymentPreview();
+    });
+  }
+  
+  // Actualizar vista previa cuando cambia el monto de pago
+  if (cartPaymentAmount) {
+    cartPaymentAmount.addEventListener('input', updatePaymentPreview);
+    cartPaymentAmount.addEventListener('change', updatePaymentPreview);
+  }
+  
+  // Toggle de datos de cliente
+  if (toggleClientData) {
+    toggleClientData.addEventListener('click', function() {
+      const isExpanded = this.dataset.expanded === 'true';
+      this.dataset.expanded = !isExpanded;
+      clientDataSection.style.display = isExpanded ? 'none' : 'block';
+      
+      // Rotar icono
+      const icon = document.getElementById('toggle-client-icon');
+      if (icon) {
+        icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+      }
+    });
+  }
+  
+  // Escape para cerrar
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && cartPanel.style.display !== 'none') {
+      closeCartPanel();
+    }
+  });
+  
+  // Cargar contador inicial
+  loadCartFromServer();
+  
+  // Exponer función para actualizar desde otros lugares
+  window.refreshCartPanel = loadCartFromServer;
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SISTEMA DE BÚSQUEDA Y FILTROS OPTIMIZADO
+// ═══════════════════════════════════════════════════════════════════════════
+// Optimizaciones implementadas:
+// - Caché de datos normalizados (no re-normalizar cada búsqueda)
+// - Delegación de eventos (un solo listener por contenedor)
+// - requestAnimationFrame para DOM batch updates
+// - Lazy rendering con IntersectionObserver
+// - DocumentFragment para operaciones DOM eficientes
+// ═══════════════════════════════════════════════════════════════════════════
+
+(function() {
+  'use strict';
+  
+  // Referencias DOM (cached una vez)
+  const searchInput = document.getElementById('stockSearch');
+  const stockGrid = document.getElementById('stockGrid');
+  const filteredCountEl = document.getElementById('stockFilteredCount');
+  const noResultsEl = document.getElementById('stockNoResults');
+  const clearSearchBtn = document.getElementById('stockClearSearch');
+  const filterButtonsContainer = document.querySelector('.col-md-6:has(.stock-filter-btn)') || document.body;
+  
+  // Estado actual
+  let currentFilter = 'all';
+  let currentSearch = '';
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CACHÉ DE DATOS - Pre-procesar datos de búsqueda una sola vez
+  // ═══════════════════════════════════════════════════════════════════════════
+  const cardDataCache = new Map();
+  
+  /**
+   * Normaliza texto para búsqueda (cached)
+   */
+  function normalizeText(text) {
+    if (!text) return '';
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+  
+  /**
+   * Pre-procesa y cachea datos de una tarjeta para búsquedas rápidas
+   */
+  function cacheCardData(card) {
+    if (cardDataCache.has(card)) return cardDataCache.get(card);
+    
+    // Crear string concatenado de todos los campos de búsqueda (normalizado)
+    const searchString = normalizeText([
+      card.dataset.searchNombre || '',
+      card.dataset.searchCategoria || '',
+      card.dataset.searchSku || '',
+      card.dataset.searchColor || '',
+      card.dataset.searchVariantes || '',
+      card.dataset.searchUnidad || '',
+      card.dataset.searchUvs || ''
+    ].join(' '));
+    
+    const data = {
+      searchString,
+      stockTotal: parseInt(card.dataset.stockTotal, 10) || 0,
+      stockMin: parseInt(card.dataset.stockMin, 10) || 0
+    };
+    
+    cardDataCache.set(card, data);
+    return data;
+  }
+  
+  /**
+   * Pre-cachea todos los datos de cards al iniciar
+   */
+  function initializeCache() {
+    const cards = stockGrid.querySelectorAll('.stock-card-wrapper');
+    cards.forEach(cacheCardData);
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FILTRADO OPTIMIZADO - Con requestAnimationFrame
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  let filterPending = false;
+  
+  /**
+   * Aplica filtros con batching via requestAnimationFrame
+   * Previene múltiples re-renders en el mismo frame
+   */
+  function scheduleFilter() {
+    if (filterPending) return;
+    filterPending = true;
+    
+    requestAnimationFrame(() => {
+      applyFilters();
+      filterPending = false;
+    });
+  }
+  
+  /**
+   * Aplica los filtros de búsqueda y stock
+   * OPTIMIZADO: usa caché, evita re-layouts innecesarios
+   */
+  function applyFilters() {
+    const cards = stockGrid.querySelectorAll('.stock-card-wrapper');
+    const normalizedQuery = normalizeText(currentSearch);
+    
+    let visibleCount = 0;
+    const updates = []; // Batch de cambios de clase
+    
+    // Primera pasada: determinar qué cambiar (sin tocar DOM)
+    cards.forEach(card => {
+      const data = cacheCardData(card);
+      const isCurrentlyHidden = card.classList.contains('filtered-out');
+      
+      // Verificar búsqueda (una sola operación string.includes)
+      const matchesSearch = !normalizedQuery || data.searchString.includes(normalizedQuery);
+      
+      // Verificar filtro de stock
+      let matchesFilter = true;
+      if (currentFilter === 'in-stock') {
+        matchesFilter = data.stockTotal > 0;
+      } else if (currentFilter === 'low-stock') {
+        matchesFilter = data.stockTotal > 0 && data.stockTotal <= data.stockMin;
+      } else if (currentFilter === 'out-stock') {
+        matchesFilter = data.stockTotal === 0;
+      }
+      
+      const shouldShow = matchesSearch && matchesFilter;
+      
+      // Solo actualizar si cambió el estado
+      if (shouldShow !== !isCurrentlyHidden) {
+        updates.push({ card, shouldShow });
+      }
+      
+      if (shouldShow) visibleCount++;
+    });
+    
+    // Segunda pasada: aplicar cambios al DOM (batch)
+    updates.forEach(({ card, shouldShow }) => {
+      card.classList.toggle('filtered-out', !shouldShow);
+    });
+    
+    // Actualizar UI (fuera del loop principal)
+    if (filteredCountEl) {
+      filteredCountEl.textContent = visibleCount;
+    }
+    
+    if (noResultsEl && stockGrid) {
+      const showNoResults = visibleCount === 0;
+      noResultsEl.style.display = showNoResults ? 'block' : 'none';
+      stockGrid.style.display = showNoResults ? 'none' : 'flex';
+    }
+  }
+  
+  /**
+   * Maneja el input de búsqueda con debounce optimizado
+   */
+  let searchTimeout = null;
+  function handleSearchInput(e) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      currentSearch = e.target.value.trim();
+      scheduleFilter();
+    }, 100); // 100ms debounce para respuesta rápida
+  }
+  
+  /**
+   * Limpia la búsqueda y filtros
+   */
+  function clearSearch() {
+    if (searchInput) {
+      searchInput.value = '';
+    }
+    currentSearch = '';
+    currentFilter = 'all';
+    
+    // Resetear botones activos
+    document.querySelectorAll('.stock-filter-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.stockFilter === 'all');
+    });
+    
+    scheduleFilter();
+    
+    if (searchInput) searchInput.focus();
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DELEGACIÓN DE EVENTOS - Un solo listener por contenedor
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  function setupEventDelegation() {
+    // Delegación para botones de filtro (un solo listener)
+    document.addEventListener('click', function(e) {
+      const filterBtn = e.target.closest('.stock-filter-btn');
+      if (filterBtn) {
+        e.preventDefault();
+        const filter = filterBtn.dataset.stockFilter;
+        if (filter && filter !== currentFilter) {
+          currentFilter = filter;
+          
+          // Actualizar UI de botones
+          document.querySelectorAll('.stock-filter-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.stockFilter === filter);
+          });
+          
+          scheduleFilter();
+        }
+        return;
+      }
+      
+      // Botón limpiar búsqueda
+      if (e.target.closest('#stockClearSearch')) {
+        clearSearch();
+      }
+    });
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LAZY LOADING - Cargar productos visibles primero (IntersectionObserver)
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  let lazyObserver = null;
+  
+  function setupLazyLoading() {
+    // Solo si hay muchos productos (>20)
+    const cards = stockGrid.querySelectorAll('.stock-card-wrapper');
+    if (cards.length <= 20) return;
+    
+    // Marcar todas como "pendientes de cargar"
+    cards.forEach((card, index) => {
+      // Cargar inmediatamente las primeras 12 (visible sin scroll)
+      if (index < 12) {
+        card.classList.remove('loading');
+        return;
+      }
+      card.classList.add('loading');
+    });
+    
+    // Observer para cargar al entrar en viewport
+    lazyObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.remove('loading');
+          lazyObserver.unobserve(entry.target);
+        }
+      });
+    }, {
+      rootMargin: '100px 0px', // Cargar un poco antes de entrar al viewport
+      threshold: 0.01
+    });
+    
+    // Observar cards pendientes
+    cards.forEach((card, index) => {
+      if (index >= 12) {
+        lazyObserver.observe(card);
+      }
+    });
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INICIALIZACIÓN OPTIMIZADA
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // 1. Pre-cachear datos de búsqueda
+    initializeCache();
+    
+    // 2. Configurar delegación de eventos
+    setupEventDelegation();
+    
+    // 3. Configurar búsqueda
+    if (searchInput) {
+      searchInput.addEventListener('input', handleSearchInput);
+      searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Escape') clearSearch();
+      });
+    }
+    
+    // 4. Lazy loading para inventarios grandes
+    setupLazyLoading();
+    
+    // 5. Aplicar filtros iniciales
+    scheduleFilter();
+    
+    // 6. Mobile sidebar toggle
+    initMobileSidebar();
+  });
+  
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOBILE SIDEBAR - Control del menú lateral móvil
+// ═══════════════════════════════════════════════════════════════════════════
+function initMobileSidebar() {
+  const menuToggle = document.getElementById('mobileMenuToggle');
+  const sidebar = document.getElementById('mobileSidebar');
+  const overlay = document.getElementById('mobileSidebarOverlay');
+  const closeBtn = document.getElementById('mobileSidebarClose');
+  
+  if (!menuToggle || !sidebar || !overlay) return;
+  
+  function openSidebar() {
+    sidebar.classList.add('active');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeSidebar() {
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  
+  menuToggle.addEventListener('click', openSidebar);
+  closeBtn?.addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
+  
+  // Cerrar con Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+      closeSidebar();
+    }
+  });
+  
+  // Cerrar al cambiar a desktop
+  const mediaQuery = window.matchMedia('(min-width: 769px)');
+  mediaQuery.addEventListener('change', e => {
+    if (e.matches) closeSidebar();
+  });
+}
+</script>
+</body>
+</html>

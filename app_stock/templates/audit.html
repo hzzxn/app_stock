@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Registro de Actividad - Stock</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link href="{{ url_for('static', filename='css/styles.css', v='4') }}" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════════════════════════════════
+     ESTILOS DEL REGISTRO DE ACTIVIDAD - DISEÑO HUMANIZADO
+  ═══════════════════════════════════════════════════════════════════════════ */
+  
+  /* Contenedor de logs */
+  .activity-feed {
+    max-height: 65vh;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+  
+  /* Card de cada actividad - con animaciones sutiles */
+  .activity-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  
+  .activity-card:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Icono grande */
+  .activity-icon {
+    font-size: 1.8rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+  
+  .activity-card:hover .activity-icon {
+    transform: scale(1.05);
+  }
+  
+  /* Colores de iconos por tipo */
+  .activity-icon.color-orange { background: rgba(253, 126, 20, 0.15); }
+  .activity-icon.color-yellow { background: rgba(255, 193, 7, 0.15); }
+  .activity-icon.color-green { background: rgba(25, 135, 84, 0.15); }
+  .activity-icon.color-red { background: rgba(220, 53, 69, 0.15); }
+  .activity-icon.color-blue { background: rgba(13, 110, 253, 0.15); }
+  .activity-icon.color-purple { background: rgba(111, 66, 193, 0.15); }
+  .activity-icon.color-gray { background: rgba(108, 117, 125, 0.15); }
+  
+  /* Contenido principal */
+  .activity-content {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  /* Título de la acción */
+  .activity-title {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  
+  /* Colores de títulos */
+  .activity-title.color-orange { color: #fd7e14; }
+  .activity-title.color-yellow { color: #ffc107; }
+  .activity-title.color-green { color: #28a745; }
+  .activity-title.color-red { color: #dc3545; }
+  .activity-title.color-blue { color: #0d6efd; }
+  .activity-title.color-purple { color: #6f42c1; }
+  .activity-title.color-gray { color: #6c757d; }
+  
+  /* Descripción */
+  .activity-description {
+    font-size: 15px;
+    color: var(--text);
+    opacity: 0.9;
+    line-height: 1.5;
+    margin-bottom: 6px;
+    font-weight: 450;
+  }
+  
+  /* Metadata (usuario + fecha) */
+  .activity-meta {
+    font-size: 14px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-weight: 500;
+  }
+  
+  .activity-meta .user {
+    color: var(--orange);
+    font-weight: 600;
+  }
+  
+  .activity-meta .separator {
+    opacity: 0.4;
+  }
+  
+  /* Empty state */
+  .activity-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  
+  .activity-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+  
+  /* Scrollbar personalizado */
+  .activity-feed::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .activity-feed::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.02);
+    border-radius: 3px;
+  }
+  
+  .activity-feed::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+  }
+  
+  .activity-feed::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.2);
+  }
+</style>
+</head>
+<body class="{{ user_theme }}">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MOBILE NAVBAR
+═══════════════════════════════════════════════════════════════════════════ -->
+<nav class="mobile-navbar hide-desktop">
+  <a href="{{ url_for('dashboard') }}" class="hamburger-btn" aria-label="Volver">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div class="navbar-brand">
+    <div class="brand-logo brand-logo--mobile">
+      <img src="{{ url_for('static', filename='branding/logo_icon.png') }}" alt="China Import" 
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="brand-logo-fallback brand-logo-fallback--icon" style="display:none;">
+        <i class="bi bi-clock-history"></i>
+      </div>
+    </div>
+    <span>Auditoría</span>
+  </div>
+  <a href="{{ url_for('audit_export', **query) }}" class="hamburger-btn" aria-label="Exportar">
+    <i class="bi bi-download"></i>
+  </a>
+</nav>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="bi bi-clock-history me-2"></i>Registro de Actividad</h3>
+    <div>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light me-2">Volver</a>
+      <a href="{{ url_for('audit_export', **query) }}" class="btn" style="background:var(--orange);color:#111">Exportar CSV</a>
+    </div>
+  </div>
+
+  <div class="row top-cards mb-3">
+    <div class="col-md-4">
+      <div class="card p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <small class="stat-sub">Total productos</small>
+            <h4 class="stat-value">{{ total_products }}</h4>
+          </div>
+          <div class="text-end">
+            <small class="stat-sub">Ítems en stock</small>
+            <h4 class="stat-value">{{ total_items }}</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3">
+        <small class="stat-sub">Productos con stock bajo</small>
+        <h4 class="stat-value orange">{{ low_stock }}</h4>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3">
+        <small class="stat-sub">Registros</small>
+        <h4 class="stat-value">{{ logs|length }}</h4>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros del registro de actividad (filtrado en JS, sin recarga) -->
+  <div class="row g-2 filter-row mb-3">
+    <div class="col-md-2">
+      <select id="filter-type" class="form-select">
+        <option value="">Tipo (todos)</option>
+        <option value="VENTA"><i class="bi bi-cart"></i> Ventas</option>
+        <option value="PAGO"><i class="bi bi-cash"></i> Pagos</option>
+        <option value="STOCK"><i class="bi bi-box"></i> Stock</option>
+        <option value="PRODUCTO"><i class="bi bi-tag"></i> Productos</option>
+        <option value="SISTEMA"><i class="bi bi-gear"></i> Sistema</option>
+      </select>
+    </div>
+    <div class="col-md-2"><input id="filter-user" placeholder="Usuario" class="form-control"></div>
+    <div class="col-md-3"><input id="filter-text" placeholder="Buscar..." class="form-control"></div>
+    <div class="col-md-2"><input id="filter-from-date" type="datetime-local" class="form-control" title="Desde"></div>
+    <div class="col-md-2"><input id="filter-to-date" type="datetime-local" class="form-control" title="Hasta"></div>
+    <div class="col-md-1 text-end">
+      <button id="btn-filter" type="button" class="btn" style="background:var(--orange);color:#111">Filtrar</button>
+    </div>
+  </div>
+
+  <!-- Feed de actividades renderizado con JavaScript -->
+  <div class="activity-feed" id="activityFeed">
+    <!-- Se llena dinámicamente -->
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDERIZADO HUMANIZADO DEL REGISTRO DE ACTIVIDAD
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Datos de logs desde el backend (inyectados por Jinja)
+const LOGS_DATA = {{ logs | tojson | safe }};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ALMACENAMIENTO DE LOGS ORIGINALES PARA FILTRADO
+// ═══════════════════════════════════════════════════════════════════════════
+const ALL_LOGS = [...LOGS_DATA];
+
+// Mapeo de acciones técnicas a UI humanizada
+const LOG_UI_MAP = {
+  // Ventas
+  'sell': {
+    icon: '<i class="bi bi-cart-check"></i>',
+    title: 'Venta registrada',
+    color: 'orange'
+  },
+  'VENTA': {
+    icon: '<i class="bi bi-cart-check"></i>',
+    title: 'Venta registrada',
+    color: 'orange'
+  },
+  
+  // Estados de venta
+  'sale_status': {
+    icon: '<i class="bi bi-arrow-repeat"></i>',
+    title: 'Estado de venta actualizado',
+    color: 'yellow'
+  },
+  
+  // Pagos
+  'payment': {
+    icon: '<i class="bi bi-cash-coin"></i>',
+    title: 'Pago registrado',
+    color: 'green'
+  },
+  'PAGO': {
+    icon: '<i class="bi bi-cash-coin"></i>',
+    title: 'Pago registrado',
+    color: 'green'
+  },
+  'payment_add': {
+    icon: '<i class="bi bi-cash-coin"></i>',
+    title: 'Pago registrado',
+    color: 'green'
+  },
+  
+  // Stock
+  'add_stock': {
+    icon: '<i class="bi bi-box-seam"></i>',
+    title: 'Stock agregado',
+    color: 'green'
+  },
+  'remove_stock': {
+    icon: '<i class="bi bi-box-seam"></i>',
+    title: 'Stock retirado',
+    color: 'red'
+  },
+  'STOCK': {
+    icon: '<i class="bi bi-box-seam"></i>',
+    title: 'Movimiento de stock',
+    color: 'blue'
+  },
+  
+  // Productos
+  'create_product': {
+    icon: '<i class="bi bi-plus-circle"></i>',
+    title: 'Producto creado',
+    color: 'blue'
+  },
+  'product_create': {
+    icon: '<i class="bi bi-plus-circle"></i>',
+    title: 'Producto creado',
+    color: 'blue'
+  },
+  'edit_product': {
+    icon: '<i class="bi bi-pencil"></i>',
+    title: 'Producto editado',
+    color: 'purple'
+  },
+  'delete_product': {
+    icon: '<i class="bi bi-trash"></i>',
+    title: 'Producto eliminado',
+    color: 'red'
+  },
+  'PRODUCTO': {
+    icon: '<i class="bi bi-tag"></i>',
+    title: 'Cambio en producto',
+    color: 'purple'
+  },
+  
+  // Variantes
+  'add_variant': {
+    icon: '<i class="bi bi-palette"></i>',
+    title: 'Variante creada',
+    color: 'blue'
+  },
+  'variant_create': {
+    icon: '<i class="bi bi-palette"></i>',
+    title: 'Variante creada',
+    color: 'blue'
+  },
+  'add_uv': {
+    icon: '<i class="bi bi-rulers"></i>',
+    title: 'Unidad de venta agregada',
+    color: 'blue'
+  },
+  
+  // Sistema
+  'login': {
+    icon: '<i class="bi bi-box-arrow-in-right"></i>',
+    title: 'Inicio de sesión',
+    color: 'green'
+  },
+  'logout': {
+    icon: '<i class="bi bi-box-arrow-right"></i>',
+    title: 'Sesión cerrada',
+    color: 'gray'
+  },
+  'change_role': {
+    icon: '<i class="bi bi-person-gear"></i>',
+    title: 'Rol de usuario cambiado',
+    color: 'purple'
+  },
+  'delete_user': {
+    icon: '<i class="bi bi-person-x"></i>',
+    title: 'Usuario eliminado',
+    color: 'red'
+  },
+  'SISTEMA': {
+    icon: '<i class="bi bi-gear"></i>',
+    title: 'Acción del sistema',
+    color: 'gray'
+  },
+  
+  // Default
+  'default': {
+    icon: '<i class="bi bi-journal"></i>',
+    title: 'Actividad',
+    color: 'gray'
+  }
+};
+
+/**
+ * Formatea una fecha ISO o timestamp a formato legible
+ * @param {string} dateStr - Fecha en formato ISO o "YYYY-MM-DD HH:MM:SS"
+ * @returns {string} - Fecha formateada "dd/mm/yyyy hh:mm"
+ */
+function formatDate(dateStr) {
+  if (!dateStr || dateStr === '—') return '—';
+  
+  try {
+    let date;
+    
+    // Intentar parsear diferentes formatos
+    if (dateStr.includes('T')) {
+      // Formato ISO
+      date = new Date(dateStr);
+    } else if (dateStr.includes(' ')) {
+      // Formato "YYYY-MM-DD HH:MM:SS"
+      const [datePart, timePart] = dateStr.split(' ');
+      date = new Date(`${datePart}T${timePart}`);
+    } else {
+      date = new Date(dateStr);
+    }
+    
+    if (isNaN(date.getTime())) return dateStr;
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  } catch (e) {
+    return dateStr;
+  }
+}
+
+/**
+ * Obtiene la configuración UI para un tipo de log
+ * @param {object} log - Objeto de log
+ * @returns {object} - Configuración {icon, title, color}
+ */
+function getLogUI(log) {
+  // Prioridad: action > type > default
+  const action = log.action || '';
+  const type = log.type || '';
+  
+  // Buscar en el mapeo
+  if (action && LOG_UI_MAP[action]) {
+    return LOG_UI_MAP[action];
+  }
+  if (type && LOG_UI_MAP[type]) {
+    return LOG_UI_MAP[type];
+  }
+  
+  return LOG_UI_MAP['default'];
+}
+
+/**
+ * Genera la descripción humanizada del log
+ * @param {object} log - Objeto de log
+ * @returns {string} - Descripción legible
+ */
+function getLogDescription(log) {
+  // Si tiene mensaje humanizado, usarlo directamente
+  if (log.message && typeof log.message === 'string') {
+    return log.message;
+  }
+  
+  // Si tiene details como string, usarlo
+  if (log.details && typeof log.details === 'string') {
+    return log.details;
+  }
+  
+  // Construir descripción desde details si es objeto
+  if (log.details && typeof log.details === 'object') {
+    const d = log.details;
+    const action = log.action || '';
+    
+    // Ventas
+    if (action === 'sell' && d.receipt) {
+      const status = d.status === 'POR PAGAR' ? 'Por pagar' : (d.status || 'Completada');
+      return `Venta ${d.receipt} por S/ ${(d.total || 0).toFixed(2)} — ${status}`;
+    }
+    
+    // Cambio de estado
+    if (action === 'sale_status' && d.receipt) {
+      return `Venta ${d.receipt}: ${d.from || '—'} → ${d.to || '—'}`;
+    }
+    
+    // Pagos
+    if (action === 'payment' && d.receipt) {
+      return `Venta ${d.receipt} — S/ ${(d.amount || 0).toFixed(2)} — ${d.method || 'Efectivo'}`;
+    }
+    
+    // Stock
+    if ((action === 'add_stock' || action === 'remove_stock') && d.variant_id) {
+      const qty = Math.abs(d.cantidad || d.delta || 0);
+      const uv = d.uv || '';
+      const uvText = uv ? ` (${uv})` : '';
+      return `${d.variant_id}${uvText} — ${action === 'add_stock' ? '+' : '-'}${qty} unidades`;
+    }
+    
+    // Productos
+    if (action === 'create_product' && d.nombre) {
+      return `Nuevo producto: ${d.nombre}`;
+    }
+    
+    if (action === 'delete_product' && d.nombre) {
+      return `Producto eliminado: ${d.nombre}`;
+    }
+    
+    // Variantes
+    if (action === 'add_variant' && d.variant_id) {
+      const attrs = d.attributes ? Object.values(d.attributes).join(', ') : '';
+      return `Nueva variante: ${d.variant_id}${attrs ? ` (${attrs})` : ''}`;
+    }
+    
+    if (action === 'add_uv' && d.variant_id) {
+      return `${d.variant_id} — Nueva UV: ${d.uv || 'UNIDAD'}`;
+    }
+    
+    // Usuarios
+    if (action === 'change_role' && d.user) {
+      return `Usuario ${d.user}: ${d.from || '—'} → ${d.to || '—'}`;
+    }
+    
+    if (action === 'delete_user' && d.user) {
+      return `Usuario eliminado: ${d.user}`;
+    }
+    
+    // Fallback: mostrar keys relevantes
+    const relevantKeys = ['nombre', 'receipt', 'variant_id', 'user', 'total', 'amount'];
+    for (const key of relevantKeys) {
+      if (d[key]) {
+        return String(d[key]);
+      }
+    }
+  }
+  
+  // Fallback final
+  return log.action ? `Acción: ${log.action}` : 'Actividad registrada';
+}
+
+/**
+ * Renderiza una card de actividad
+ * @param {object} log - Objeto de log
+ * @returns {string} - HTML de la card
+ */
+function renderActivityCard(log) {
+  const ui = getLogUI(log);
+  const description = getLogDescription(log);
+  const user = log.user || '—';
+  const timestamp = log.timestamp || log.ts || '';
+  const formattedDate = formatDate(timestamp);
+  
+  return `
+    <div class="activity-card">
+      <div class="activity-icon color-${ui.color}">
+        ${ui.icon}
+      </div>
+      <div class="activity-content">
+        <div class="activity-title color-${ui.color}">${ui.title}</div>
+        <div class="activity-description">${escapeHtml(description)}</div>
+        <div class="activity-meta">
+          <span class="user">${escapeHtml(user)}</span>
+          <span class="separator">·</span>
+          <span class="date">${formattedDate}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Escapa HTML para prevenir XSS
+ * @param {string} text - Texto a escapar
+ * @returns {string} - Texto escapado
+ */
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/**
+ * Renderiza el feed completo de actividades
+ * @param {array} logs - Array de logs a renderizar (filtrados o todos)
+ */
+function renderActivityFeed(logs = ALL_LOGS) {
+  const container = document.getElementById('activityFeed');
+  
+  if (!logs || logs.length === 0) {
+    container.innerHTML = `
+      <div class="activity-empty">
+        <div class="activity-empty-icon">🔍</div>
+        <div>No hay registros que coincidan con los filtros</div>
+      </div>
+    `;
+    return;
+  }
+  
+  const html = logs.map(log => renderActivityCard(log)).join('');
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SISTEMA DE FILTRADO EN FRONTEND
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Mapeo de tipos genéricos a acciones técnicas
+ * Permite filtrar por categoría (VENTA, PAGO, etc)
+ */
+const TYPE_TO_ACTIONS = {
+  'VENTA': ['sell', 'VENTA', 'sale_status'],
+  'PAGO': ['payment', 'PAGO', 'payment_add'],
+  'STOCK': ['add_stock', 'remove_stock', 'STOCK'],
+  'PRODUCTO': ['create_product', 'product_create', 'edit_product', 'delete_product', 'add_variant', 'variant_create', 'add_uv', 'PRODUCTO'],
+  'SISTEMA': ['login', 'logout', 'change_role', 'delete_user', 'SISTEMA']
+};
+
+/**
+ * Verifica si un log coincide con el tipo de filtro seleccionado
+ * @param {object} log - El log a verificar
+ * @param {string} filterType - El tipo de filtro (VENTA, PAGO, etc)
+ * @returns {boolean}
+ */
+function matchesType(log, filterType) {
+  if (!filterType) return true;
+  
+  const actions = TYPE_TO_ACTIONS[filterType] || [];
+  const logAction = log.action || '';
+  const logType = log.type || '';
+  
+  // Coincide si action o type está en la lista de acciones del tipo
+  return actions.includes(logAction) || actions.includes(logType);
+}
+
+/**
+ * Verifica si un log coincide con el filtro de usuario
+ * @param {object} log - El log a verificar
+ * @param {string} filterUser - El usuario a buscar (case-insensitive, parcial)
+ * @returns {boolean}
+ */
+function matchesUser(log, filterUser) {
+  if (!filterUser) return true;
+  
+  const logUser = (log.user || '').toLowerCase();
+  return logUser.includes(filterUser.toLowerCase());
+}
+
+/**
+ * Verifica si un log coincide con la búsqueda de texto
+ * Busca en: message, action, details, variant_id, receipt, nombre
+ * @param {object} log - El log a verificar
+ * @param {string} searchText - El texto a buscar
+ * @returns {boolean}
+ */
+function matchesText(log, searchText) {
+  if (!searchText) return true;
+  
+  const search = searchText.toLowerCase();
+  
+  // Buscar en mensaje humanizado
+  const message = (log.message || '').toLowerCase();
+  if (message.includes(search)) return true;
+  
+  // Buscar en action
+  const action = (log.action || '').toLowerCase();
+  if (action.includes(search)) return true;
+  
+  // Buscar en type
+  const type = (log.type || '').toLowerCase();
+  if (type.includes(search)) return true;
+  
+  // Buscar en título visual (desde LOG_UI_MAP)
+  const ui = getLogUI(log);
+  if (ui.title && ui.title.toLowerCase().includes(search)) return true;
+  
+  // Buscar en descripción generada
+  const description = getLogDescription(log).toLowerCase();
+  if (description.includes(search)) return true;
+  
+  // Buscar en details si es objeto
+  if (log.details && typeof log.details === 'object') {
+    const d = log.details;
+    
+    // Campos comunes a buscar
+    const fieldsToSearch = ['nombre', 'receipt', 'variant_id', 'sku', 'producto', 'method', 'status'];
+    for (const field of fieldsToSearch) {
+      if (d[field] && String(d[field]).toLowerCase().includes(search)) {
+        return true;
+      }
+    }
+    
+    // Buscar en atributos de variante
+    if (d.attributes && typeof d.attributes === 'object') {
+      for (const val of Object.values(d.attributes)) {
+        if (String(val).toLowerCase().includes(search)) {
+          return true;
+        }
+      }
+    }
+  }
+  
+  // Buscar en details si es string
+  if (log.details && typeof log.details === 'string') {
+    if (log.details.toLowerCase().includes(search)) return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Parsea un timestamp de log a objeto Date
+ * @param {string} dateStr - Fecha en varios formatos posibles
+ * @returns {Date|null}
+ */
+function parseLogDate(dateStr) {
+  if (!dateStr || dateStr === '—') return null;
+  
+  try {
+    let date;
+    
+    if (dateStr.includes('T')) {
+      // Formato ISO
+      date = new Date(dateStr);
+    } else if (dateStr.includes(' ')) {
+      // Formato "YYYY-MM-DD HH:MM:SS"
+      const [datePart, timePart] = dateStr.split(' ');
+      date = new Date(`${datePart}T${timePart}`);
+    } else {
+      date = new Date(dateStr);
+    }
+    
+    return isNaN(date.getTime()) ? null : date;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Verifica si un log está dentro del rango de fechas
+ * @param {object} log - El log a verificar
+ * @param {Date|null} fromDate - Fecha mínima (inclusive)
+ * @param {Date|null} toDate - Fecha máxima (inclusive)
+ * @returns {boolean}
+ */
+function matchesDateRange(log, fromDate, toDate) {
+  if (!fromDate && !toDate) return true;
+  
+  const timestamp = log.timestamp || log.ts || '';
+  const logDate = parseLogDate(timestamp);
+  
+  if (!logDate) return true; // Si no tiene fecha válida, no filtrar por fecha
+  
+  if (fromDate && logDate < fromDate) return false;
+  if (toDate && logDate > toDate) return false;
+  
+  return true;
+}
+
+/**
+ * Aplica todos los filtros activos y re-renderiza el feed
+ */
+function applyLogFilters() {
+  // Leer valores de los filtros
+  const filterType = document.getElementById('filter-type').value;
+  const filterUser = document.getElementById('filter-user').value.trim();
+  const filterText = document.getElementById('filter-text').value.trim();
+  const filterFromStr = document.getElementById('filter-from-date').value;
+  const filterToStr = document.getElementById('filter-to-date').value;
+  
+  // Parsear fechas
+  const fromDate = filterFromStr ? new Date(filterFromStr) : null;
+  const toDate = filterToStr ? new Date(filterToStr) : null;
+  
+  // Filtrar logs
+  const filteredLogs = ALL_LOGS.filter(log => {
+    // Todos los filtros deben coincidir (AND)
+    if (!matchesType(log, filterType)) return false;
+    if (!matchesUser(log, filterUser)) return false;
+    if (!matchesText(log, filterText)) return false;
+    if (!matchesDateRange(log, fromDate, toDate)) return false;
+    
+    return true;
+  });
+  
+  // Renderizar resultados
+  renderActivityFeed(filteredLogs);
+  
+  // Actualizar contador de registros
+  updateFilteredCount(filteredLogs.length, ALL_LOGS.length);
+}
+
+/**
+ * Actualiza el contador visual de registros filtrados
+ * @param {number} filtered - Cantidad de registros mostrados
+ * @param {number} total - Cantidad total de registros
+ */
+function updateFilteredCount(filtered, total) {
+  // Buscar el elemento que muestra el conteo (en las cards superiores)
+  const countCards = document.querySelectorAll('.stat-value');
+  for (const card of countCards) {
+    const parent = card.closest('.card');
+    if (parent) {
+      const label = parent.querySelector('.stat-sub');
+      if (label && label.textContent.includes('Registros')) {
+        if (filtered !== total) {
+          card.textContent = `${filtered} / ${total}`;
+        } else {
+          card.textContent = total;
+        }
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Limpia todos los filtros y muestra todos los logs
+ */
+function clearFilters() {
+  document.getElementById('filter-type').value = '';
+  document.getElementById('filter-user').value = '';
+  document.getElementById('filter-text').value = '';
+  document.getElementById('filter-from-date').value = '';
+  document.getElementById('filter-to-date').value = '';
+  
+  renderActivityFeed(ALL_LOGS);
+  updateFilteredCount(ALL_LOGS.length, ALL_LOGS.length);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INICIALIZACIÓN Y EVENT LISTENERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Renderizar feed inicial con todos los logs
+  renderActivityFeed(ALL_LOGS);
+  
+  // Event listener para botón Filtrar
+  const btnFilter = document.getElementById('btn-filter');
+  if (btnFilter) {
+    btnFilter.addEventListener('click', function(e) {
+      e.preventDefault();
+      applyLogFilters();
+    });
+  }
+  
+  // Event listeners para filtrar en tiempo real al escribir (opcional pero mejora UX)
+  const filterInputs = ['filter-type', 'filter-user', 'filter-text', 'filter-from-date', 'filter-to-date'];
+  
+  filterInputs.forEach(function(inputId) {
+    const el = document.getElementById(inputId);
+    if (el) {
+      // Para select, filtrar al cambiar
+      if (el.tagName === 'SELECT') {
+        el.addEventListener('change', applyLogFilters);
+      }
+      // Para inputs de fecha, filtrar al cambiar
+      else if (el.type === 'datetime-local') {
+        el.addEventListener('change', applyLogFilters);
+      }
+      // Para inputs de texto, filtrar al escribir (con debounce)
+      else {
+        let debounceTimer;
+        el.addEventListener('input', function() {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(applyLogFilters, 300);
+        });
+        // También filtrar al presionar Enter
+        el.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+            applyLogFilters();
+          }
+        });
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
