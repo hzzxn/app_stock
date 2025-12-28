@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "app_stock"
+version = "1.0.0"
+description = "China Import Stock Management System"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+
+dependencies = [
+    "Flask>=3.0.0",
+    "Werkzeug>=3.0.1",
+    "Jinja2>=3.1.6",
+    "itsdangerous>=2.2.0",
+    "gunicorn>=21.2.0",
+    "python-dateutil>=2.9.0",
+    "pytz>=2024.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app_stock*"]
+
+[tool.setuptools.package-data]
+"*" = ["templates/*", "static/**/*"]

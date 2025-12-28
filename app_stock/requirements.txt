@@ -1,0 +1,21 @@
+# ==============================================================================
+# DEPENDENCIAS - China Import Stock System
+# ==============================================================================
+# Archivo generado para deploy en Render (plan gratuito compatible)
+# ==============================================================================
+
+Flask==3.0.0
+Werkzeug==3.0.1
+Jinja2==3.1.6
+itsdangerous==2.2.0
+click==8.3.1
+python-dateutil==2.9.0.post0
+pytz==2025.2
+six==1.17.0
+gunicorn==21.2.0
+
+
+# ==============================================================================
+# DEPENDENCIAS DE DESARROLLO (opcional, no necesarias en producción)
+# ==============================================================================
+# pytest  # Descomentar si necesitas correr tests en CI/CD
