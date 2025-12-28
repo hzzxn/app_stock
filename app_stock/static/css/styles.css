@@ -1,0 +1,3298 @@
+:root{
+  --orange:#ff7a00; /* acento principal */
+  --text:#EAEAEA;    /* texto principal - alto contraste */
+  --text-secondary:#B0B0B0; /* texto secundario - legible */
+  --muted:#7A7A7A;   /* texto muted - mínimo legible */
+  --bg:#0f1720;      /* fondo principal: gris oscuro */
+  --card-bg:#16191c; /* tarjetas ligeramente más claras */
+  --panel-bg:#1b1f23;/* paneles/inventario un poco más claros */
+  --border: rgba(255,255,255,0.08); /* bordes sutiles pero visibles */
+  --card: #1a1d21;   /* fondo de cards */
+  --toast-width-min:300px;
+  --toast-width-max:540px;
+  /* Branding paths */
+  --brand-name: "China Import";
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEGIBILIDAD GLOBAL - Tipografía optimizada para dark mode
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Base typography improvements */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Minimum font sizes for readability */
+body {
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 450; /* Slightly heavier for dark mode */
+}
+
+/* Labels and small text */
+label,
+.form-label,
+small,
+.small,
+.form-help,
+.text-muted {
+  font-size: 14px !important;
+  font-weight: 500;
+  color: var(--text-secondary) !important;
+}
+
+/* Subtitles */
+.panel-card-subtitle,
+.stat-sub,
+.card-subtitle,
+h6 {
+  font-size: 15px !important;
+  font-weight: 500;
+  color: var(--text-secondary) !important;
+}
+
+/* Titles */
+h1, h2, h3, h4, h5,
+.panel-card-title,
+.modal-title,
+.card-title {
+  font-weight: 600;
+  color: var(--text) !important;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: 28px !important; }
+h2 { font-size: 24px !important; }
+h3 { font-size: 20px !important; }
+h4 { font-size: 18px !important; }
+h5 { font-size: 16px !important; }
+
+/* Paragraph text */
+p {
+  font-size: 15px;
+  font-weight: 450;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* Table text improvements */
+.table,
+.table th,
+.table td {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.table thead th {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary) !important;
+}
+
+/* Button text */
+.btn {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Form inputs */
+.form-control,
+.form-select {
+  font-size: 15px;
+  font-weight: 450;
+  color: var(--text) !important;
+}
+
+.form-control::placeholder {
+  color: var(--muted) !important;
+  font-weight: 400;
+}
+
+/* Badge text */
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BRANDING - Sistema de logos centralizado
+─────────────────────────────────────────────────────────────────────────────*/
+/* Logo base container */
+.brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.brand-logo img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Logo desktop - Versión completa con texto */
+.brand-logo--desktop {
+  max-width: 160px;
+  height: 40px;
+}
+
+.brand-logo--desktop img {
+  max-height: 40px;
+  width: auto;
+}
+
+/* Logo mobile - Solo icono */
+.brand-logo--mobile {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-logo--mobile img {
+  max-width: 36px;
+  max-height: 36px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Logo sidebar - Versión para menú lateral */
+.brand-logo--sidebar {
+  max-width: 140px;
+  height: 32px;
+}
+
+.brand-logo--sidebar img {
+  max-height: 32px;
+  width: auto;
+}
+
+/* Logo login - Versión para página de login */
+.brand-logo--login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 72px;
+  max-height: 72px;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto 16px;
+}
+
+.brand-logo--login img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* Desktop: logo login más grande */
+@media (min-width: 769px) {
+  .brand-logo--login {
+    max-width: 88px;
+    max-height: 88px;
+  }
+}
+
+/* Fallback text cuando la imagen no carga */
+.brand-logo-fallback {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.brand-logo img.error ~ .brand-logo-fallback,
+.brand-logo img[src=""] ~ .brand-logo-fallback,
+.brand-logo:not(:has(img)) .brand-logo-fallback {
+  display: flex;
+}
+
+/* Fallback icon style (matches navbar-brand-icon) */
+.brand-logo-fallback--icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--orange);
+  color: #111;
+  font-size: 1rem;
+}
+
+/* Responsive: ocultar desktop logo en móvil y viceversa */
+@media (max-width: 768px) {
+  .brand-logo--desktop-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .brand-logo--mobile-only {
+    display: none !important;
+  }
+}
+
+/* Light mode support for branding */
+body.light .brand-logo-fallback {
+  color: var(--text);
+}
+
+body.light .brand-logo-fallback--icon {
+  background: var(--orange);
+  color: #111;
+}
+
+/* Light theme overrides when body has class 'light' */
+body.light{
+  --bg: #ffffff;
+  --card-bg: #ffffff;
+  --card: #ffffff;
+  --panel-bg: #f7f7f7;
+  --text: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --muted: #6b7280;
+  --orange: #e66a00;
+  --border: rgba(0,0,0,0.1);
+}
+
+/* Explicit dark class (matches defaults) */
+body.dark{
+  --bg:#0f1720;
+  --card-bg:#16191c;
+  --card: #1a1d21;
+  --panel-bg:#1b1f23;
+  --text:#EAEAEA;
+  --text-secondary:#B0B0B0;
+  --muted:#7A7A7A;
+  --orange:#ff7a00;
+  --border: rgba(255,255,255,0.08);
+}
+
+/* Layout */
+.body, body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing:antialiased;
+}
+.container{max-width:1200px}
+
+/* LOGIN card */
+.login-card{
+  width:360px;
+  border-radius:12px;
+  padding:22px;
+  background:var(--card-bg);
+  border:1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+}
+.login-logo{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 72px;
+  max-height: 72px;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  background: var(--orange);
+  color: #111;
+  font-weight: 700;
+  font-size: 20px;
+  margin: 0 auto 16px;
+}
+
+.login-logo img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* Modal improvements */
+.modal .modal-content{
+  background:var(--card-bg);
+  color:var(--text);
+  border:none;
+  border-radius:10px;
+}
+.modal .modal-header{
+  background:transparent;
+  border-bottom:1px solid var(--border);
+}
+.modal .modal-title{color:var(--orange);font-weight:600;font-size:18px}
+.modal .form-label{color:var(--text-secondary);font-size:14px;font-weight:500}
+.modal .modal-footer{border-top:1px solid var(--border)}
+.modal .preview-box{border-radius:8px;overflow:hidden;border:1px solid var(--border);background:#0f1416;padding:6px}
+
+/* form controls (ensure contrast inside modals) */
+.form-control, .form-select{
+  background:var(--card-bg);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:15px;
+  font-weight:450;
+}
+.form-control::placeholder{color:var(--muted);font-weight:400}
+.form-control:focus, .form-select:focus{
+  background:var(--card-bg);
+  color:var(--text);
+  border-color:var(--orange);
+  box-shadow:0 0 0 3px rgba(255,122,0,0.15);
+}
+
+/* small helper for muted text inside forms */
+.form-help{
+  color:var(--text-secondary);
+  font-size:14px;
+  font-weight:500;
+  margin-top:6px;
+}
+
+/* Toasts (bottom-center) */
+.toast-container-bottom{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1080;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none}
+.toast{pointer-events:auto;min-width:var(--toast-width-min);max-width:var(--toast-width-max);border-radius:0.6rem;box-shadow:0 8px 26px rgba(2,6,23,0.6);overflow:hidden;background:var(--card-bg)}
+.toast .toast-header.custom{background:transparent;display:flex;align-items:center;gap:.5rem;padding:.45rem .75rem}
+.toast .toast-icon{width:20px;height:20px;flex:0 0 20px;color:var(--orange)}
+.toast .toast-title{color:var(--orange);font-weight:600;margin-left:.25rem;font-size:15px}
+.toast .toast-body{padding:1rem 1.25rem;font-size:15px;line-height:1.4;color:var(--text);font-weight:450}
+.btn-close-white{filter:none;opacity:.8}
+
+.stat-value{color:var(--orange);font-weight:700;font-size:1.6rem}
+/* stronger fallback to override other card/header rules */
+.card .stat-value,
+.card .stat-value * {
+  color: var(--orange) !important;
+}
+.stat-sub{color:var(--text-secondary);font-size:15px;font-weight:500}
+.stat-value.orange{color:var(--orange)}
+
+/* Table contrast */
+.table thead th{
+  color:var(--text-secondary);
+  border-bottom:1px solid var(--border);
+  background:transparent;
+  font-size:12px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+}
+/* Ensure table body cells use theme text by default (override inline/bootstrap) */
+.table tbody td{
+  color:var(--text) !important;
+  font-size:14px;
+  font-weight:500;
+}
+
+/* In dark mode, tables inside cards should adopt the card background
+   and not use the default white table row backgrounds from Bootstrap. */
+body.dark .card .table,
+body.dark .card .table thead,
+body.dark .card .table tbody,
+body.dark .card .table tr,
+body.dark .card .table th,
+body.dark .card .table td {
+  background-color: transparent !important;
+  color: var(--text) !important;
+  border-color: rgba(255,255,255,0.03) !important;
+}
+
+/* make sure table head labels are readable in dark mode */
+body.dark .card .table thead th{color:var(--muted) !important}
+
+/* Usernames and important table cells: use theme orange for emphasis (good contrast in dark theme) */
+.table tbody td a,
+.table tbody td .username,
+.table tbody td:first-child,
+/* audit table places user in second column — handle that too */
+.table tbody tr td:nth-child(2) {
+  color: var(--orange) !important;
+  font-weight: 700 !important;
+}
+.table tbody td a:hover{opacity:0.9;text-decoration:underline}
+
+.table tbody td pre{color:var(--muted);font-size:0.9rem;white-space:pre-wrap}
+
+/* Producto: tarjetas */
+.product-card{
+  background: var(--panel-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.6) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.product-card .card-body h6,
+.product-card .card-body p,
+.product-card .card-body small {
+  color: var(--text) !important;
+}
+.product-card .badge-category{
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.02);
+}
+
+/* Tarjetas clickeables - hover y cursor */
+.product-card-clickable {
+  cursor: pointer;
+}
+.product-card-clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(255, 122, 0, 0.15) !important;
+  border-color: var(--orange) !important;
+}
+.product-card-clickable:focus {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+.product-card-clickable .card-img-top {
+  transition: transform 0.3s ease;
+}
+.product-card-clickable:hover .card-img-top {
+  transform: scale(1.03);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODAL DE PRODUCTO - ESTILOS PROFESIONALES
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Contenedor del modal */
+#productModal .modal-dialog {
+  max-width: 800px;
+}
+
+.product-modal-content {
+  background: var(--card-bg) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Header del modal */
+.product-modal-header {
+  background: linear-gradient(180deg, rgba(255,122,0,0.08) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  padding: 1.25rem 1.5rem;
+}
+
+.product-modal-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Body del modal */
+.product-modal-body {
+  padding: 1.5rem;
+}
+
+/* Contenedor de imagen */
+.product-modal-image-wrapper {
+  background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 100%);
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.product-modal-image {
+  max-width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Badges del modal */
+.product-modal-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.badge-attr {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.badge-categoria {
+  background: rgba(255,122,0,0.15);
+  color: var(--orange);
+  border: 1px solid rgba(255,122,0,0.3);
+}
+
+.badge-color {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.badge-unidad {
+  background: rgba(59,130,246,0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59,130,246,0.3);
+}
+
+/* Secciones del modal */
+.product-modal-section {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.product-modal-section:last-child {
+  border-bottom: none;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-label svg {
+  opacity: 0.7;
+}
+
+/* Sección de stock */
+.stock-section {
+  padding-top: 0;
+}
+
+.stock-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.stock-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.stock-value-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.stock-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stock-unit {
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stock-badge {
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.stock-min-info {
+  margin-top: 4px;
+}
+
+/* Sección de variaciones */
+.variations-section {
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+  padding: 16px !important;
+  margin: 12px 0;
+  border: none !important;
+}
+
+.variations-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.variation-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.variation-pill:hover {
+  background: rgba(255,122,0,0.1);
+  border-color: rgba(255,122,0,0.3);
+}
+
+.variation-pill.active {
+  background: rgba(255,122,0,0.15);
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+.variation-pill.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0,0,0,0.2);
+}
+
+.variation-pill.disabled:hover {
+  background: rgba(0,0,0,0.2);
+  border-color: rgba(255,255,255,0.1);
+}
+
+.variation-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UV Pills - Selector de Unidad de Venta
+   ═══════════════════════════════════════════════════════════════════════════ */
+.uv-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.uv-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uv-pill:hover {
+  background: rgba(255,122,0,0.1);
+  border-color: rgba(255,122,0,0.3);
+}
+
+.uv-pill.active {
+  background: rgba(255,122,0,0.15);
+  border-color: var(--orange);
+}
+
+.uv-pill.active .uv-pill-name {
+  color: var(--orange);
+  font-weight: 600;
+}
+
+.uv-pill.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0,0,0,0.2);
+}
+
+.uv-pill.disabled:hover {
+  background: rgba(0,0,0,0.2);
+  border-color: rgba(255,255,255,0.1);
+}
+
+.uv-pill-name {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.uv-pill-stock {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.uv-pill.active .uv-pill-stock {
+  color: var(--orange);
+}
+
+.uv-pill.disabled .uv-pill-stock {
+  color: #ef4444;
+}
+
+.uv-section {
+  margin-top: 12px;
+}
+
+/* Control de stock */
+.stock-control-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stock-qty-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+
+.qty-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.qty-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.stock-qty-input {
+  width: 60px !important;
+  text-align: center;
+  border: none !important;
+  background: transparent !important;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.stock-qty-input:focus {
+  box-shadow: none !important;
+}
+
+.stock-action-btns {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.btn-stock-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-stock-add:hover {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+.btn-stock-remove {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-stock-remove:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+.stock-feedback,
+.cart-feedback {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.2);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Sección agregar a venta */
+.cart-section {
+  background: rgba(255,122,0,0.03);
+  border-radius: 12px;
+  padding: 20px !important;
+  margin-top: 12px;
+  border: 1px solid rgba(255,122,0,0.1) !important;
+}
+
+.cart-inputs-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.cart-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cart-input-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.cart-qty-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+
+.cart-qty-input {
+  width: 100% !important;
+  text-align: center;
+  border: none !important;
+  background: transparent !important;
+  font-weight: 600;
+}
+
+.price-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding-left: 12px;
+}
+
+.price-prefix {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.cart-price-input {
+  border: none !important;
+  background: transparent !important;
+  font-weight: 600;
+}
+
+.cart-price-input:focus {
+  box-shadow: none !important;
+}
+
+.cart-total-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  margin-bottom: 4px;
+}
+
+.cart-subtotal {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--orange);
+}
+
+.igv-note {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.btn-add-to-cart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, var(--orange), #e66a00);
+  border: none;
+  border-radius: 10px;
+  color: #111;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(255,122,0,0.3);
+}
+
+.btn-add-to-cart:hover {
+  background: linear-gradient(135deg, #e66a00, #cc5500);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255,122,0,0.4);
+  color: #111;
+}
+
+.btn-add-to-cart:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-add-to-cart.btn-add-success {
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+}
+
+/* Sección admin */
+.admin-section {
+  padding-top: 16px;
+  border-top: 1px dashed rgba(255,255,255,0.1);
+  margin-top: 8px;
+}
+
+.admin-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-admin-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid rgba(255,193,7,0.4);
+  border-radius: 6px;
+  color: #ffc107;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-admin-edit:hover {
+  background: rgba(255,193,7,0.1);
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+.btn-admin-delete {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid rgba(239,68,68,0.4);
+  border-radius: 6px;
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-admin-delete:hover {
+  background: rgba(239,68,68,0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* Footer del modal */
+.product-modal-footer {
+  background: rgba(0,0,0,0.15);
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+  padding: 1rem 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #productModal .modal-dialog {
+    max-width: 95%;
+    margin: 10px auto;
+  }
+  
+  .product-modal-image-wrapper {
+    min-height: 180px;
+  }
+  
+  .product-modal-image {
+    max-height: 180px;
+  }
+  
+  .stock-value {
+    font-size: 2rem;
+  }
+  
+  .stock-control-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .stock-action-btns {
+    justify-content: stretch;
+  }
+  
+  .stock-action-btns .btn {
+    flex: 1;
+  }
+  
+  .cart-inputs-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Ensure generic Bootstrap .card follows theme variables
+   - dark theme: use --card-bg and --text
+   - light theme: keep white background for readability */
+body.dark .card {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.55) !important;
+}
+body.light .card {
+  background: #ffffff !important;
+  color: #111 !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+  box-shadow: none !important;
+}
+
+/* Imagen del producto: tamaño por defecto 300px, responsivo en móvil */
+.product-card .card-img-top{
+  height: 300px !important;
+  object-fit: cover !important;
+  background:#0f1416;
+}
+
+/* reducción en pantallas pequeñas */
+@media (max-width: 768px){
+  .product-card .card-img-top{
+    height: 180px !important;
+  }
+}
+
+/* Página - título bonito para "Stock visual" */
+.page-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.page-title .icon{
+  width:52px;
+  height:52px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--orange),#ffb070);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 8px 24px rgba(0,0,0,0.45);
+  flex:0 0 52px;
+}
+.page-title .icon svg{width:28px;height:28px;fill:#111}
+.page-title h2{
+  margin:0;
+  font-size:1.85rem;
+  font-weight:800;
+  letter-spacing:0.2px;
+  color:var(--text);
+}
+.page-title .subtitle{
+  font-size:15px;
+  color:var(--text-secondary);
+  margin-top:4px;
+  font-weight:500;
+}
+.page-title .accent-line{
+  height:3px;
+  width:64px;
+  background:var(--orange);
+  border-radius:3px;
+  margin-top:8px;
+}
+@media (max-width:768px){
+  .page-title h2{font-size:1.4rem}
+  .page-title .icon{width:44px;height:44px}
+}
+
+/* Misc */.card-img-top{background:#222}@media (max-width:768px){  .card .card-img-top{height:140px}  .toast{min-width:300px}}
+
+/* Dashboard actions (settings / logout) — use theme variables for consistent palette */
+.dashboard-actions .btn{
+  border-radius:6px;
+  padding:0.45rem 0.75rem;
+  font-weight:600;
+}
+.dashboard-actions .btn-outline-secondary{
+  color:var(--text);
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.06);
+}
+.dashboard-actions .btn-outline-secondary:hover{
+  background:rgba(255,255,255,0.02);
+}
+.dashboard-actions .btn-secondary{
+  background:var(--card-bg);
+  color:var(--text);
+  border:1px solid rgba(255,255,255,0.04);
+}
+.dashboard-actions .btn-secondary:hover{
+  filter:brightness(1.05);
+}
+
+/* helper utility: explicit orange text class */
+.text-orange{color:var(--orange) !important;font-weight:700 !important}
+
+/* List group items (used on /sell) should follow theme */
+body.dark .list-group-item,
+body.dark .list-group-item.d-flex,
+body.dark .list-group .list-group-item {
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+}
+body.dark .list-group-item .small{color:var(--muted) !important}
+
+/* Make .btn-primary slightly warmer in dark theme for contrast */
+body.dark .btn-primary{
+  background:var(--orange) !important;
+  border-color:transparent !important;
+  color:#111 !important;
+}
+
+/* Cart (boleta interna) styling inside the right-side card */
+body.dark .card #cartList{background:transparent;padding:0;margin:0}
+body.dark .card #cartList .list-group-item{
+  background: rgba(255,255,255,0.02) !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+  display:flex !important;
+  justify-content:space-between !important;
+  align-items:center !important;
+  padding:.55rem .75rem !important;
+}
+body.dark .card #cartList .list-group-item:last-child{border-bottom:none !important}
+body.dark .card #cartList .list-group-item strong{color:var(--text) !important}
+body.dark .card #cartList .list-group-item .small{color:var(--muted) !important;font-size:0.9rem}
+body.dark #cartTotal{color:var(--orange);font-weight:700}
+body.dark .card .card-title{color:var(--text);font-weight:700}
+
+/* Make the submit button stand out in dark mode (keeps CTA visible) */
+body.dark .btn-success{background:var(--orange) !important;border-color:transparent !important;color:#111 !important}
+
+/* Encabezados de página: acciones (Volver, Exportar, Estadísticas) */
+.container > .d-flex.justify-content-between .btn,
+.container > .d-flex.justify-content-between.align-items-center .btn {
+  border-radius:6px;
+  padding:0.35rem 0.6rem;
+  font-weight:600;
+  color:var(--text);
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.06);
+}
+.container > .d-flex.justify-content-between .btn:hover,
+.container > .d-flex.justify-content-between.align-items-center .btn:hover{
+  background:rgba(255,255,255,0.02);
+}
+
+/* Botón de acción primaria naranja (si se usa variable) */
+.container > .d-flex.justify-content-between .btn[style*="--orange"],
+.container > .d-flex.justify-content-between .btn[style*="background:var(--orange)"]{
+  background:var(--orange) !important;
+  color:#111 !important;
+  border-color:transparent !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PANEL FLOTANTE DE CARRITO (POS-style)
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Botón flotante (FAB) */
+.cart-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #111;
+  border: none;
+  box-shadow: 0 4px 20px rgba(255,122,0,0.4);
+  cursor: pointer;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.cart-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(255,122,0,0.5);
+}
+.cart-fab svg {
+  width: 24px;
+  height: 24px;
+}
+.cart-fab-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+.cart-fab-badge:empty,
+.cart-fab-badge[data-count="0"] {
+  display: none;
+}
+
+/* Panel lateral del carrito */
+.cart-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  max-width: 100vw;
+  height: 100vh;
+  background: var(--card-bg);
+  border-left: 1px solid rgba(255,255,255,0.08);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.4);
+  z-index: 1060;
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.25s ease-out;
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.cart-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(180deg, rgba(255,122,0,0.1) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.cart-panel-header h5 {
+  margin: 0;
+  color: var(--orange);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cart-panel-header h5 svg {
+  color: var(--orange);
+}
+.cart-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+  /* Asegurar scroll suave en móvil */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Sección toggle de datos de cliente */
+.cart-section-toggle {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.cart-section-toggle button {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 500;
+}
+.cart-section-toggle #toggle-client-icon {
+  transition: transform 0.2s ease;
+}
+.cart-section-toggle input,
+.cart-section-toggle textarea {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}
+.cart-section-toggle input::placeholder,
+.cart-section-toggle textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+/* Sección de pago en carrito */
+.cart-payment-section {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.15);
+}
+.cart-payment-section .cart-total {
+  margin-bottom: 0.75rem;
+}
+.payment-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+.payment-amount-wrap {
+  flex: 1.5;
+}
+.payment-method-wrap {
+  flex: 1;
+}
+.payment-input-row .input-group {
+  background: var(--bg);
+  border-radius: 6px;
+}
+.payment-input-row .input-group-text {
+  background: rgba(255,122,0,0.15);
+  color: var(--orange);
+  border: none;
+  font-weight: 600;
+}
+.payment-input-row input {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+}
+.payment-input-row input:focus {
+  background: rgba(255,255,255,0.03);
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px rgba(255,122,0,0.15);
+}
+.payment-input-row select {
+  background: var(--bg);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+}
+.payment-status-row {
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(255,255,255,0.08);
+}
+.payment-status-row .badge {
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+}
+#cart-payment-fullpay {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+#cart-payment-fullpay:hover {
+  background: var(--orange);
+  color: #111;
+}
+
+.cart-panel-footer {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.25);
+  /* Asegurar que el footer no se superponga incorrectamente */
+  position: relative;
+  z-index: 1;
+}
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+.cart-total strong {
+  color: var(--orange);
+  font-size: 1.4rem;
+}
+.cart-actions {
+  display: flex;
+  gap: 8px;
+}
+.cart-actions .btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Items del carrito */
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* Imágenes en items del carrito (si se agregan) */
+.cart-item img {
+  width: 60px;
+  height: 60px;
+  min-width: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.cart-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.cart-item-name {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 15px;
+}
+.cart-item-details {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.cart-item-price {
+  font-weight: 700;
+  color: var(--orange);
+  white-space: nowrap;
+  font-size: 15px;
+}
+.cart-item-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.15s;
+  /* Área táctil mínima recomendada: 44x44px */
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cart-item-remove:hover {
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+}
+
+/* Mejor área táctil en móvil */
+@media (max-width: 768px) {
+  .cart-item-remove {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+/* Overlay cuando el panel está abierto */
+.cart-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1055;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FORMULARIO AGREGAR VARIANTE
+═══════════════════════════════════════════════════════════════════════════ */
+.variant-add-section {
+  border-top: 1px dashed rgba(255,122,0,0.3);
+  padding-top: 16px;
+  margin-top: 8px;
+}
+
+.variant-form {
+  background: rgba(0,0,0,0.25);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(255,122,0,0.15);
+}
+
+/* Secciones dentro del formulario de variantes */
+.variant-form-section {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.variant-form-section:last-of-type {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.variant-form-section-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--orange);
+  margin-bottom: 8px;
+}
+
+/* Labels de alta visibilidad */
+.variant-label {
+  color: var(--text) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  margin-bottom: 4px !important;
+}
+
+/* Inputs con buen contraste */
+.variant-input {
+  background: rgba(15,20,22,0.9) !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+}
+
+.variant-input:focus {
+  background: rgba(15,20,22,1) !important;
+  border-color: var(--orange) !important;
+  box-shadow: 0 0 0 2px rgba(255,122,0,0.2) !important;
+  color: #ffffff !important;
+}
+
+.variant-input::placeholder {
+  color: rgba(255,255,255,0.5) !important;
+  font-style: italic;
+}
+
+/* Select específico */
+select.variant-input {
+  cursor: pointer;
+}
+
+select.variant-input option {
+  background: #1b1f23;
+  color: #ffffff;
+}
+
+/* Fallback para labels antiguos */
+.variant-form .form-label {
+  color: #e5e7eb !important;
+  margin-bottom: 4px;
+}
+
+.variant-form .form-control-sm {
+  background: rgba(15,20,22,0.9);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #ffffff;
+}
+
+.variant-form .form-control-sm::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+.variant-form .form-select-sm {
+  background: rgba(15,20,22,0.9);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #ffffff;
+}
+
+/* UV Selector - Radio Buttons estilo toggle */
+.uv-selector .btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.uv-selector .btn-check + .btn {
+  flex: 1;
+  min-width: 70px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 8px;
+  background: rgba(15,20,22,0.8);
+  border-color: rgba(255,255,255,0.15);
+  color: var(--text-secondary);
+}
+
+.uv-selector .btn-check:checked + .btn {
+  background: var(--orange) !important;
+  border-color: var(--orange) !important;
+  color: #000 !important;
+}
+
+.uv-selector .btn-check:hover + .btn {
+  background: rgba(255,122,0,0.2);
+  border-color: var(--orange);
+}
+
+/* Disabled state for UV buttons already in use */
+.uv-selector .btn-check:disabled + .btn,
+.uv-selector .btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* Info colored UV selector (for add-UV form) */
+.uv-selector .btn-outline-info {
+  --bs-btn-border-color: #17a2b8;
+  --bs-btn-color: #17a2b8;
+}
+
+.uv-selector .btn-check:checked + .btn-outline-info {
+  background: #17a2b8 !important;
+  border-color: #17a2b8 !important;
+  color: #fff !important;
+}
+
+.uv-selector .btn-outline-info:hover {
+  background: rgba(23, 162, 184, 0.2);
+  border-color: #17a2b8;
+}
+
+/* Variant buttons container */
+#pm-variant-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Input para UV personalizada */
+#pm-uv-otra-wrap {
+  margin-top: 8px;
+}
+
+#pm-uv-label {
+  background: rgba(15,20,22,0.9);
+  border: 1px solid var(--orange);
+  color: #fff;
+  font-size: 14px;
+}
+
+#pm-uv-label::placeholder {
+  color: rgba(255,122,0,0.6);
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE - CARRITO MÓVIL
+   Media queries para pantallas < 768px
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Tablets y móviles grandes (< 768px) */
+@media (max-width: 768px) {
+  /* Panel de carrito a pantalla completa */
+  .cart-panel {
+    width: 100vw;
+    max-width: 100vw;
+  }
+  
+  /* Asegurar que el body se puede scrollear */
+  .cart-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.75rem;
+    /* Asegurar que hay espacio para el footer */
+    padding-bottom: 1rem;
+  }
+  
+  /* Footer siempre visible en la parte inferior */
+  .cart-panel-footer {
+    position: sticky;
+    bottom: 0;
+    padding: 1rem;
+    background: rgba(0,0,0,0.95);
+    border-top: 2px solid rgba(255,122,0,0.3);
+    /* Asegurar que se quede arriba del contenido */
+    z-index: 10;
+  }
+  
+  /* Botones apilados verticalmente en móvil */
+  .cart-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .cart-actions .btn {
+    width: 100%;
+    flex: none;
+  }
+  
+  /* Hacer los botones más grandes en móvil para mejor toque */
+  .cart-actions .btn {
+    padding: 0.65rem 1rem;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  
+  /* Sección de pago: inputs apilados verticalmente */
+  .payment-input-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .payment-amount-wrap,
+  .payment-method-wrap {
+    flex: none;
+    width: 100%;
+  }
+  
+  /* Items del carrito: mejor espaciado en móvil */
+  .cart-item {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  
+  /* Imágenes de productos (si se agregan) */
+  .cart-item img {
+    max-width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  
+  /* Ajustar tamaños de fuente en móvil */
+  .cart-panel-header h5 {
+    font-size: 1.1rem;
+  }
+  
+  .cart-total {
+    font-size: 1rem;
+  }
+  
+  .cart-total strong {
+    font-size: 1.3rem;
+  }
+  
+  /* Botón flotante más pequeño en móvil */
+  .cart-fab {
+    width: 56px;
+    height: 56px;
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  .cart-fab svg {
+    width: 22px;
+    height: 22px;
+  }
+  
+  /* Sección de delivery responsive */
+  .cart-delivery-section {
+    padding: 10px !important;
+  }
+  
+  #delivery-type-selector .btn {
+    font-size: 13px;
+    padding: 0.45rem 0.5rem;
+  }
+  
+  .delivery-fields {
+    padding: 8px !important;
+  }
+  
+  /* Toggle de datos de cliente */
+  .cart-section-toggle {
+    padding: 0.65rem 1rem !important;
+  }
+}
+
+/* Móviles pequeños (< 420px) */
+@media (max-width: 420px) {
+  .cart-panel {
+    width: 100vw;
+  }
+  
+  .cart-fab {
+    bottom: 16px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+  }
+  
+  /* Reducir padding en pantallas muy pequeñas */
+  .cart-panel-body {
+    padding: 0.5rem;
+  }
+  
+  .cart-panel-footer {
+    padding: 0.75rem;
+  }
+  
+  .cart-panel-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Items más compactos */
+  .cart-item {
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .cart-item-name {
+    font-size: 14px;
+  }
+  
+  .cart-item-details {
+    font-size: 12px;
+  }
+  
+  .cart-item-price {
+    font-size: 14px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SISTEMA DE ANIMACIONES PROFESIONALES
+   
+   Animaciones sutiles y reutilizables para UX empresarial.
+   - Duración: 0.15s – 0.3s
+   - Easing: ease, ease-out (nunca linear)
+   - Propósito: feedback visual, no espectáculo
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   1. HOVER LIFT - Elevación suave para tarjetas
+   Uso: .anim-hover-lift en cualquier tarjeta/card
+─────────────────────────────────────────────────────────────────────────────*/
+.anim-hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.anim-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Variante más sutil para elementos pequeños */
+.anim-hover-lift-sm {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.anim-hover-lift-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2. PULSE - Feedback visual para clicks
+   Uso: Añadir clase .anim-pulse-active vía JS al hacer click
+─────────────────────────────────────────────────────────────────────────────*/
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.anim-pulse {
+  transition: transform 0.15s ease;
+}
+
+.anim-pulse:active,
+.anim-pulse-active {
+  animation: pulse 0.2s ease;
+}
+
+/* Pulse con brillo para botones de éxito */
+@keyframes pulse-success {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+  50% { transform: scale(0.97); }
+  100% { transform: scale(1); box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
+}
+
+.anim-pulse-success {
+  animation: pulse-success 0.3s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3. SHAKE - Validación de errores
+   Uso: Añadir clase .anim-shake vía JS cuando hay error de validación
+─────────────────────────────────────────────────────────────────────────────*/
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.anim-shake {
+  animation: shake 0.3s ease;
+}
+
+/* Shake más suave para inputs */
+@keyframes shake-soft {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.anim-shake-soft {
+  animation: shake-soft 0.2s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   4. FADE IN - Aparición suave de elementos
+   Uso: .anim-fade-in para elementos que aparecen
+─────────────────────────────────────────────────────────────────────────────*/
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.anim-fade-in {
+  animation: fadeIn 0.2s ease;
+}
+
+/* Fade in desde abajo (para listas, items nuevos) */
+@keyframes fadeInUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(8px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.anim-fade-in-up {
+  animation: fadeInUp 0.25s ease-out;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   5. SLIDE DOWN - Paneles desplegables
+   Uso: Para dropdowns, accordions, paneles expandibles
+─────────────────────────────────────────────────────────────────────────────*/
+@keyframes slideDown {
+  from { 
+    opacity: 0; 
+    transform: translateY(-8px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.anim-slide-down {
+  animation: slideDown 0.2s ease-out;
+}
+
+/* Slide desde la derecha (para paneles laterales) */
+@keyframes slideInRight {
+  from { 
+    opacity: 0; 
+    transform: translateX(16px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+.anim-slide-in-right {
+  animation: slideInRight 0.25s ease-out;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   6. MODAL SLIDE UP - Modales con entrada profesional
+   Override de Bootstrap para animación slide-up + fade
+─────────────────────────────────────────────────────────────────────────────*/
+.modal.fade .modal-dialog {
+  transform: translateY(20px);
+  transition: transform 0.25s ease-out, opacity 0.2s ease;
+}
+
+.modal.show .modal-dialog {
+  transform: translateY(0);
+}
+
+/* Backdrop con fade suave */
+.modal-backdrop.fade {
+  transition: opacity 0.2s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   7. BADGES - Transición suave de estado
+   Los badges cambian de color suavemente, sin animar texto
+─────────────────────────────────────────────────────────────────────────────*/
+.badge {
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.badge:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   8. BOTONES - Transiciones y estados
+   Mejora de feedback en todos los botones
+─────────────────────────────────────────────────────────────────────────────*/
+.btn {
+  transition: background-color 0.15s ease, border-color 0.15s ease, 
+              box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Botón con glow al hover (acción principal) */
+.btn-glow:hover {
+  box-shadow: 0 4px 15px rgba(255, 122, 0, 0.3);
+}
+
+.btn-success.btn-glow:hover {
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-primary.btn-glow:hover {
+  box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   9. DROPDOWN MENUS - Aparición suave
+─────────────────────────────────────────────────────────────────────────────*/
+.dropdown-menu {
+  animation: slideDown 0.15s ease-out;
+}
+
+.dropdown-menu.show {
+  animation: slideDown 0.15s ease-out;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   10. FORM INPUTS - Focus suave y estados
+─────────────────────────────────────────────────────────────────────────────*/
+.form-control,
+.form-select {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* Input con error */
+.form-control.is-invalid,
+.form-select.is-invalid {
+  animation: shake-soft 0.2s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   11. CARDS - Mejora de transiciones existentes
+   Aplicado automáticamente a todas las cards con clase card
+─────────────────────────────────────────────────────────────────────────────*/
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Card interactiva (para usar en conjunto con .anim-hover-lift) */
+.card.card-interactive:hover {
+  border-color: rgba(255, 122, 0, 0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   12. COLLAPSE/ACCORDION - Transiciones Bootstrap mejoradas
+─────────────────────────────────────────────────────────────────────────────*/
+.collapse {
+  transition: height 0.25s ease;
+}
+
+.collapsing {
+  transition: height 0.25s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   13. TOAST ANIMATIONS - Notificaciones con entrada suave
+─────────────────────────────────────────────────────────────────────────────*/
+@keyframes toastSlideIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(16px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.toast.show {
+  animation: toastSlideIn 0.25s ease-out;
+}
+
+@keyframes toastSlideOut {
+  from { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+  to { 
+    opacity: 0; 
+    transform: translateY(16px); 
+  }
+}
+
+.toast.hiding {
+  animation: toastSlideOut 0.2s ease-in forwards;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   14. LOADING SPINNER - Para estados de carga
+─────────────────────────────────────────────────────────────────────────────*/
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.anim-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   15. CHECK ANIMATION - Feedback de éxito
+─────────────────────────────────────────────────────────────────────────────*/
+@keyframes checkBounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.anim-check {
+  animation: checkBounce 0.3s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   16. LIST ITEMS - Stagger effect para listas
+   Uso: Aplicar via JS con delays incrementales
+─────────────────────────────────────────────────────────────────────────────*/
+.anim-stagger-item {
+  opacity: 0;
+  animation: fadeInUp 0.3s ease forwards;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   17. ICON ANIMATIONS - Para iconos interactivos
+─────────────────────────────────────────────────────────────────────────────*/
+.anim-icon-hover {
+  transition: transform 0.15s ease;
+}
+
+.anim-icon-hover:hover {
+  transform: scale(1.1);
+}
+
+/* Rotación suave (para refresh, settings) */
+.anim-icon-rotate:hover {
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   18. CART PANEL - Animación del panel lateral
+─────────────────────────────────────────────────────────────────────────────*/
+.cart-panel {
+  transition: transform 0.25s ease-out, opacity 0.2s ease;
+}
+
+.cart-panel.show {
+  animation: slideInRight 0.25s ease-out;
+}
+
+/* FAB del carrito - Efecto hover */
+.cart-fab {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.15s ease;
+}
+
+.cart-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 122, 0, 0.4);
+}
+
+.cart-fab:active {
+  transform: scale(0.95);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   19. TABLE ROW HOVER - Feedback sutil en tablas
+─────────────────────────────────────────────────────────────────────────────*/
+.table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   20. STAT CARDS - Tarjetas de estadísticas animadas
+─────────────────────────────────────────────────────────────────────────────*/
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   21. SKELETON LOADERS - Estados de carga elegantes
+   Optimización UX: feedback visual mientras carga contenido
+═══════════════════════════════════════════════════════════════════════════*/
+
+/* Animación de shimmer (brillo que recorre el skeleton) */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Base skeleton */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Skeleton para tarjetas de producto */
+.skeleton-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.skeleton-card-img {
+  width: 100%;
+  height: 140px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-card-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton-line {
+  height: 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-line.short { width: 60%; }
+.skeleton-line.medium { width: 80%; }
+.skeleton-line.full { width: 100%; }
+
+.skeleton-badge {
+  width: 60px;
+  height: 20px;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Light mode: skeleton más oscuro */
+body.light .skeleton,
+body.light .skeleton-card-img,
+body.light .skeleton-line,
+body.light .skeleton-badge {
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.05) 25%,
+    rgba(0,0,0,0.1) 50%,
+    rgba(0,0,0,0.05) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   22. SPINNER INLINE - Para botones y acciones pequeñas
+─────────────────────────────────────────────────────────────────────────────*/
+.spinner-inline {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spinner-rotate 0.6s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spinner-rotate {
+  to { transform: rotate(360deg); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   23. LAZY LOAD TRANSITION - Animación suave al aparecer productos
+─────────────────────────────────────────────────────────────────────────────*/
+.stock-card-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.stock-card-wrapper.loading {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* Estado oculto por filtro (más rápido que display:none) */
+.stock-card-wrapper.filtered-out {
+  display: none !important;
+}
+
+/* Optimización: GPU acceleration para cards en scroll */
+.product-card {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   UTILIDAD: Preferencia de movimiento reducido
+   Respeta la configuración del sistema operativo
+─────────────────────────────────────────────────────────────────────────────*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .skeleton,
+  .skeleton-card-img,
+  .skeleton-line,
+  .skeleton-badge {
+    animation: none !important;
+    background: rgba(255,255,255,0.05);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   ██████╗ ███████╗███████╗██████╗  ██████╗ ███╗   ██╗███████╗██╗██╗   ██╗███████╗
+   ██╔══██╗██╔════╝██╔════╝██╔══██╗██╔═══██╗████╗  ██║██╔════╝██║██║   ██║██╔════╝
+   ██████╔╝█████╗  ███████╗██████╔╝██║   ██║██╔██╗ ██║███████╗██║██║   ██║█████╗  
+   ██╔══██╗██╔══╝  ╚════██║██╔═══╝ ██║   ██║██║╚██╗██║╚════██║██║╚██╗ ██╔╝██╔══╝  
+   ██║  ██║███████╗███████║██║     ╚██████╔╝██║ ╚████║███████║██║ ╚████╔╝ ███████╗
+   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═══╝  ╚══════╝
+   MOBILE RESPONSIVE - Sistema Interno (breakpoint: 768px)
+═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R1. MOBILE NAVBAR - Barra superior fija con hamburger
+─────────────────────────────────────────────────────────────────────────────*/
+.mobile-navbar {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--card-bg);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  z-index: 1040;
+  padding: 0 16px;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.mobile-navbar .navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* Logo dentro del navbar móvil - alineación perfecta */
+.mobile-navbar .brand-logo--mobile {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-navbar .brand-logo--mobile img {
+  max-width: 36px;
+  max-height: 36px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.mobile-navbar .navbar-brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+}
+
+.mobile-navbar .navbar-brand-icon i {
+  font-size: 1.1rem;
+}
+
+/* Hamburger Button */
+.hamburger-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.hamburger-btn:hover,
+.hamburger-btn:focus {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R2. MOBILE SIDEBAR OFF-CANVAS
+─────────────────────────────────────────────────────────────────────────────*/
+.mobile-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1045;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-sidebar {
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 280px;
+  height: 100%;
+  background: var(--card-bg);
+  z-index: 1050;
+  transition: left 0.3s ease;
+  overflow-y: auto;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+}
+
+.mobile-sidebar.active {
+  left: 0;
+}
+
+.mobile-sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-sidebar-header h5 {
+  margin: 0;
+  color: var(--orange);
+  font-weight: 700;
+}
+
+.mobile-sidebar-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.mobile-sidebar-body {
+  padding: 16px;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 500;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link:focus {
+  background: rgba(255,255,255,0.08);
+  color: var(--orange);
+}
+
+.mobile-nav-link.active {
+  background: rgba(255,122,0,0.15);
+  color: var(--orange);
+}
+
+.mobile-nav-link i {
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+}
+
+.mobile-nav-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 12px 0;
+}
+
+/* Stats en sidebar mobile */
+.mobile-stats {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.mobile-stat-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px 8px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.mobile-stat-item .stat-value {
+  font-size: 1.3rem;
+}
+
+.mobile-stat-item .stat-sub {
+  font-size: 0.75rem;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R3. FLOATING ACTION BUTTON (FAB) - Carrito
+─────────────────────────────────────────────────────────────────────────────*/
+.fab-cart {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #111;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 1030;
+  box-shadow: 0 4px 20px rgba(255,122,0,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab-cart:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 28px rgba(255,122,0,0.5);
+}
+
+.fab-cart:active {
+  transform: scale(0.95);
+}
+
+.fab-cart .cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 11px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(239,68,68,0.4);
+}
+
+.fab-cart .cart-badge:empty,
+.fab-cart .cart-badge[data-count="0"] {
+  display: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R4. RESPONSIVE GRID - Productos
+─────────────────────────────────────────────────────────────────────────────*/
+@media (max-width: 991px) {
+  .stock-card-wrapper,
+  .col-md-3.stock-card-wrapper {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R5. MAIN MOBILE BREAKPOINT (768px)
+─────────────────────────────────────────────────────────────────────────────*/
+@media (max-width: 768px) {
+  /* Mostrar navbar y FAB móvil */
+  .mobile-navbar {
+    display: flex;
+  }
+  
+  .fab-cart {
+    display: flex;
+  }
+  
+  /* Ajustar padding del container principal para navbar fija */
+  body > .container {
+    padding-top: 72px !important;
+  }
+  
+  /* Ocultar control-panel de escritorio en móvil (se mueve al sidebar) */
+  .control-panel {
+    display: none !important;
+  }
+  
+  /* Ocultar dashboard-actions de escritorio */
+  .dashboard-actions {
+    display: none !important;
+  }
+  
+  /* Títulos más compactos */
+  .page-title h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  .page-title .icon {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .page-title .subtitle {
+    font-size: 14px;
+  }
+  
+  /* Botones de acción en una sola fila scrolleable */
+  .d-flex.justify-content-between.align-items-center.mb-3 {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+  
+  .d-flex.justify-content-between.align-items-center.mb-3 > .d-flex.gap-2 {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    flex-wrap: nowrap;
+    gap: 8px !important;
+  }
+  
+  .d-flex.justify-content-between.align-items-center.mb-3 > .d-flex.gap-2 .btn {
+    flex-shrink: 0;
+    font-size: 14px;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  /* Barra de búsqueda y filtros en columna */
+  .card.p-3.mb-4 .row.g-3 {
+    flex-direction: column;
+  }
+  
+  .card.p-3.mb-4 .col-md-6 {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Filtros scrolleables horizontalmente */
+  .card.p-3.mb-4 .d-flex.gap-2.flex-wrap {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    margin-bottom: -8px;
+  }
+  
+  .stock-filter-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  
+  /* Grid de productos: 2 columnas */
+  #stockGrid .col-md-3,
+  .stock-card-wrapper {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+    padding-left: 6px;
+    padding-right: 6px;
+    margin-bottom: 12px !important;
+  }
+  
+  /* Cards más compactas */
+  .product-card .card-img-top {
+    height: 140px !important;
+  }
+  
+  .product-card .card-body {
+    padding: 10px !important;
+  }
+  
+  .product-card .card-body h6 {
+    font-size: 0.9rem !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .product-card .card-body p,
+  .product-card .card-body small {
+    font-size: 0.8rem !important;
+  }
+  
+  /* Login card responsive */
+  .login-card {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 16px;
+  }
+  
+  /* Tablas responsive */
+  .table-responsive {
+    font-size: 14px;
+  }
+  
+  .table th,
+  .table td {
+    padding: 8px 10px !important;
+    white-space: nowrap;
+  }
+  
+  /* Stats cards en columna */
+  .row > [class*="col-md-4"],
+  .row > [class*="col-md-3"] {
+    margin-bottom: 12px;
+  }
+  
+  /* Cards de estadísticas más compactas */
+  .stat-value {
+    font-size: 1.4rem !important;
+  }
+  
+  .stat-sub {
+    font-size: 14px !important;
+  }
+  
+  /* Toasts más anchos en móvil */
+  .toast {
+    min-width: 280px;
+    max-width: calc(100vw - 32px);
+  }
+  
+  .toast-container-bottom {
+    left: 16px;
+    right: 16px;
+    transform: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R6. MODAL FULLSCREEN EN MÓVIL
+─────────────────────────────────────────────────────────────────────────────*/
+@media (max-width: 768px) {
+  /* Modal de producto fullscreen */
+  #productModal .modal-dialog,
+  .modal-dialog-scrollable {
+    margin: 0 !important;
+    max-width: 100% !important;
+    min-height: 100vh;
+    width: 100%;
+  }
+  
+  #productModal .modal-content,
+  .modal-dialog-scrollable .modal-content {
+    border-radius: 0 !important;
+    min-height: 100vh;
+    border: none !important;
+  }
+  
+  .product-modal-content {
+    border-radius: 0 !important;
+    min-height: 100vh;
+  }
+  
+  /* Header del modal más compacto */
+  .product-modal-header {
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--card-bg);
+  }
+  
+  .product-modal-name {
+    font-size: 1.2rem;
+  }
+  
+  /* Imagen más grande en fullscreen */
+  .product-modal-image-wrapper {
+    min-height: 200px;
+    border-radius: 8px;
+    margin: 0 1rem;
+  }
+  
+  .product-modal-image {
+    max-height: 220px;
+  }
+  
+  /* Secciones del modal */
+  .product-modal-body {
+    padding: 1rem;
+  }
+  
+  .product-modal-section {
+    padding: 12px 0;
+  }
+  
+  /* Stock value más grande */
+  .stock-value {
+    font-size: 2.2rem !important;
+  }
+  
+  /* Variaciones y UVs en scroll horizontal si son muchas */
+  .variations-pills,
+  .uv-pills {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  
+  .variation-pill,
+  .uv-pill {
+    flex-shrink: 0;
+  }
+  
+  /* Controles de cantidad más grandes (touch-friendly) */
+  .qty-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 1.4rem;
+  }
+  
+  .stock-qty-input {
+    height: 48px;
+    font-size: 1.1rem;
+  }
+  
+  /* Botones de acción más grandes */
+  .stock-action-btns .btn {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+  }
+  
+  /* Footer del modal sticky */
+  .product-modal-footer,
+  .modal-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--card-bg);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 1rem;
+    z-index: 10;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R7. PANTALLAS MUY PEQUEÑAS (< 480px) - 1 columna
+─────────────────────────────────────────────────────────────────────────────*/
+@media (max-width: 480px) {
+  /* Grid de productos: 1 columna */
+  #stockGrid .col-md-3,
+  .stock-card-wrapper {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Cards más grandes para mejor visualización */
+  .product-card .card-img-top {
+    height: 180px !important;
+  }
+  
+  /* Botones de acción apilados */
+  .d-flex.justify-content-between.align-items-center.mb-3 > .d-flex.gap-2 {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .d-flex.justify-content-between.align-items-center.mb-3 > .d-flex.gap-2 .btn {
+    width: 100%;
+  }
+  
+  /* Page title más pequeño */
+  .page-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  /* FAB más pequeño */
+  .fab-cart {
+    width: 54px;
+    height: 54px;
+    font-size: 1.3rem;
+    bottom: 16px;
+    right: 16px;
+  }
+  
+  /* Navbar más compacta */
+  .mobile-navbar {
+    height: 52px;
+    padding: 0 12px;
+  }
+  
+  .mobile-navbar .navbar-brand {
+    font-size: 1rem;
+  }
+  
+  .mobile-navbar .navbar-brand-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  /* Logo branding también más pequeño en pantallas muy pequeñas */
+  .mobile-navbar .brand-logo--mobile {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+  
+  .mobile-navbar .brand-logo--mobile img {
+    max-width: 32px;
+    max-height: 32px;
+  }
+
+  body > .container {
+    padding-top: 68px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R8. UTILIDADES RESPONSIVE
+─────────────────────────────────────────────────────────────────────────────*/
+/* Ocultar en móvil */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Ocultar en desktop */
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none !important;
+  }
+  
+  .mobile-navbar,
+  .mobile-sidebar,
+  .mobile-sidebar-overlay,
+  .fab-cart {
+    display: none !important;
+  }
+}
+
+/* Scroll horizontal suave para contenedores */
+.scroll-x-mobile {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.scroll-x-mobile::-webkit-scrollbar {
+  height: 4px;
+}
+
+.scroll-x-mobile::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.02);
+}
+
+.scroll-x-mobile::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+
+/* Touch-friendly: elementos mínimo 44x44px */
+@media (max-width: 768px) {
+  .btn,
+  .form-control,
+  .form-select {
+    min-height: 44px;
+  }
+  
+  .btn-sm {
+    min-height: 36px;
+  }
+}
+
+/* Light mode adjustments for mobile */
+body.light .mobile-navbar {
+  background: #ffffff;
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+
+body.light .mobile-sidebar {
+  background: #ffffff;
+}
+
+body.light .mobile-sidebar-header {
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+
+body.light .mobile-nav-link:hover,
+body.light .mobile-nav-link:focus {
+  background: rgba(0,0,0,0.05);
+}
+
+body.light .mobile-stat-item {
+  background: rgba(0,0,0,0.02);
+  border-color: rgba(0,0,0,0.06);
+}
+
+body.light .hamburger-btn:hover,
+body.light .hamburger-btn:focus {
+  background: rgba(0,0,0,0.05);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R9. UTILIDADES ADICIONALES MÓVIL
+─────────────────────────────────────────────────────────────────────────────*/
+/* Mostrar solo en móvil */
+.d-block-mobile {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .d-block-mobile {
+    display: block !important;
+  }
+  
+  .d-none-mobile {
+    display: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   R10. VENTAS MÓVIL - Cards compactas y filtros colapsables
+─────────────────────────────────────────────────────────────────────────────*/
+@media (max-width: 768px) {
+  /* Filtros colapsables */
+  .filter-group {
+    margin-bottom: 8px;
+  }
+  
+  .filter-group .btn-group {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
+  
+  /* Cards de venta compactas */
+  .sale-card-mobile {
+    background: var(--card-bg);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .sale-card-mobile .sale-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .sale-card-mobile .sale-receipt {
+    font-weight: 700;
+    color: var(--orange);
+    font-size: 16px;
+  }
+  
+  .sale-card-mobile .sale-status {
+    font-size: 13px;
+    padding: 4px 8px;
+    font-weight: 600;
+  }
+  
+  .sale-card-mobile .sale-info {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  .sale-card-mobile .sale-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  
+  .sale-card-mobile .sale-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .sale-card-mobile .sale-actions .btn {
+    flex: 1;
+    min-width: 80px;
+    font-size: 13px;
+    padding: 8px 10px;
+    font-weight: 600;
+  }
+  
+  /* Búsqueda compacta */
+  .search-form-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .search-form-mobile .form-control {
+    font-size: 15px;
+  }
+  
+  /* Toggle para filtros */
+  .filters-toggle-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  
+  .filters-toggle-mobile i {
+    transition: transform 0.2s;
+  }
+  
+  .filters-toggle-mobile.collapsed i {
+    transform: rotate(-90deg);
+  }
+  
+  .filters-content-mobile {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  
+  .filters-content-mobile.show {
+    max-height: 500px;
+  }
+}
